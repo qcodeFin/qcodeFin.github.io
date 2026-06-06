@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>项目IRR测算 · 行业税务知识库（软件/制造/新能源）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e9f0fc 0%, #d9e2f2 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 32px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 28px 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #eef2fa;
+            padding-bottom: 16px;
+        }
+
+        .card-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1f2f5c, #2c4b8c);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .card-header .emoji {
+            font-size: 1.8rem;
+        }
+
+        .param-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .param-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafd;
+            padding: 6px 16px 6px 12px;
+            border-radius: 60px;
+            border: 1px solid #e2eaf5;
+        }
+
+        .param-group label {
+            font-weight: 500;
+            color: #1e2f47;
+            font-size: 0.85rem;
+        }
+
+        .param-group input {
+            border: none;
+            background: transparent;
+            padding: 8px 0 8px 4px;
+            width: 110px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .btn {
+            background: #2c5f8a;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(105deg, #2b5f8a, #1f4980);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(105deg, #236d9c, #1b3f6e);
+        }
+
+        .btn-calc {
+            background: linear-gradient(105deg, #2b7a4b, #1d5e3a);
+            padding: 12px 28px;
+            font-size: 1rem;
+        }
+
+        .btn-calc:hover {
+            background: linear-gradient(105deg, #32965c, #227548);
+            transform: translateY(-2px);
+        }
+
+        .year-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .year-card {
+            background: #ffffffdd;
+            border-radius: 24px;
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #eef2fc;
+        }
+
+        .year-label {
+            font-weight: 700;
+            background: #eef3fc;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #215c7e;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .input-group-sm {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #fafcff;
+            border: 1px solid #e2edf9;
+            border-radius: 32px;
+            padding: 4px 12px;
+            flex: 1 0 auto;
+            min-width: 120px;
+        }
+
+        .input-group-sm span {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #5b6f8c;
+        }
+
+        .input-group-sm input {
+            border: none;
+            background: transparent;
+            width: 90px;
+            padding: 6px 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .result-card {
+            background: linear-gradient(115deg, #edf4fc, #e3edf8);
+            border-radius: 28px;
+            padding: 20px 24px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: monospace;
+            background: #1e2f41;
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 60px;
+            color: #c9f0ff;
+            margin: 12px 8px 0 8px;
+        }
+
+        .industry-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            border-bottom: 1px solid #cfdfef;
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .industry-tab {
+            background: transparent;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #2c6288;
+            transition: 0.2s;
+        }
+
+        .industry-tab.active {
+            background: #2c5f8a;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .policy-list {
+            margin: 20px 0;
+        }
+
+        .policy-card {
+            background: #f8fafd;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 5px solid #2c7da0;
+        }
+
+        .policy-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #1f4980;
+            margin-bottom: 8px;
+        }
+
+        .policy-desc {
+            font-size: 0.85rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .policy-link {
+            font-size: 0.75rem;
+            margin-bottom: 12px;
+        }
+
+        .policy-link a {
+            color: #2c7da0;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .policy-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .small-btn {
+            background: #e2eaf5;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: #1f4980;
+        }
+
+        .add-btn {
+            background: #2b7a4b;
+            color: white;
+            margin-top: 12px;
+        }
+
+        .upload-section {
+            background: #eef3fc;
+            border-radius: 24px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .upload-form input, .upload-form textarea {
+            width: 100%;
+            border: 1px solid #cbddea;
+            border-radius: 20px;
+            padding: 10px 14px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .cases-list {
+            margin-top: 20px;
+        }
+
+        .case-card {
+            background: white;
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            border: 1px solid #e2edf9;
+        }
+
+        .case-title {
+            font-weight: 700;
+            color: #1a4b6e;
+            margin-bottom: 6px;
+        }
+
+        .case-content {
+            font-size: 0.85rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+        }
+
+        .case-meta {
+            font-size: 0.7rem;
+            color: #6c86a3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        hr {
+            margin: 20px 0;
+            border: none;
+            height: 1px;
+            background: #cfdfef;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+        }
+        .modal-content h4 {
+            margin-bottom: 16px;
+        }
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 16px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 680px) {
+            .card {
+                padding: 20px;
+            }
+            .year-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-calc {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- IRR 测算卡片 -->
+    <div class="card">
+        <div class="card-header">
+            <span class="emoji">📊</span>
+            <h3>项目IRR测算（税前 / 税后）</h3>
+        </div>
+        <div class="param-row">
+            <div class="param-group"><label>💰 初始投资额</label><input id="inv" value="1000" type="number" step="0.01"></div>
+            <div class="param-group"><label>🧾 所得税率 (小数)</label><input id="taxrate" value="0.25" step="0.01" type="number"></div>
+            <div class="param-group"><label>📅 项目年限</label><input id="nyear" value="3" type="number" min="1" step="1"></div>
+            <button class="btn btn-primary" onclick="createRows()">生成年度录入框</button>
+        </div>
+    </div>
+
+    <div class="card" id="yearBox"></div>
+
+    <div class="card result-card">
+        <button class="btn btn-calc" onclick="calcAll()">📈 开始计算 IRR</button>
+        <div id="result" style="margin-top: 20px;"></div>
+    </div>
+
+    <!-- 行业知识库模块 -->
+    <div class="card">
+        <div class="card-header">
+            <span class="emoji">📚</span>
+            <h3>税务分行业案例知识库 · 政策可编辑 · 案例共创</h3>
+        </div>
+        <div class="industry-tabs" id="industryTabs">
+            <button class="industry-tab active" data-industry="software">💻 软件行业</button>
+            <button class="industry-tab" data-industry="manufacturing">🏭 制造业</button>
+            <button class="industry-tab" data-industry="newenergy">☀️ 新能源行业</button>
+        </div>
+        <div id="knowledgePanel"></div>
+    </div>
+    <footer style="text-align:center; font-size:0.7rem; color:#6b7e9e;">IRR基于迭代求解 | 政策条文与案例均可完整编辑（点击编辑按钮使用弹窗） | 数据自动保存至本地</footer>
+</div>
+
+<!-- 全局模态框，用于编辑政策和案例 -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h4 id="modalTitle">编辑内容</h4>
+        <div id="modalFields"></div>
+        <div class="modal-buttons">
+            <button class="btn" onclick="closeModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveModal()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- IRR 逻辑 ----------
+    function calcIRR(cashFlows, guess = 0.1) {
+        const eps = 1e-8;
+        const maxIter = 100;
+        let r = guess;
+        for (let it = 0; it < maxIter; it++) {
+            let f = 0, df = 0;
+            for (let i = 0; i < cashFlows.length; i++) {
+                const t = i;
+                const denom = Math.pow(1 + r, t);
+                f += cashFlows[i] / denom;
+                df -= t * cashFlows[i] / (denom * (1 + r));
+            }
+            const dr = f / df;
+            r = r - dr;
+            if (Math.abs(dr) < eps) break;
+        }
+        return r;
+    }
+
+    function createRows() {
+        const n = parseInt(document.getElementById('nyear').value) || 1;
+        const box = document.getElementById('yearBox');
+        if (!box) return;
+        box.innerHTML = '';
+        if (n <= 0) return;
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'year-grid';
+        for (let i = 1; i <= n; i++) {
+            const yearCard = document.createElement('div');
+            yearCard.className = 'year-card';
+            yearCard.innerHTML = `
+                <div class="year-label">第 ${i} 年</div>
+                <div class="input-group-sm"><span>💰 营收</span><input class="rev" placeholder="0" type="number" step="0.01"></div>
+                <div class="input-group-sm"><span>📉 付现成本</span><input class="cost" placeholder="0" type="number" step="0.01"></div>
+                <div class="input-group-sm"><span>🏦 利息</span><input class="int" placeholder="0" type="number" step="0.01"></div>
+                <div class="input-group-sm"><span>📦 折旧</span><input class="dep" placeholder="0" type="number" step="0.01"></div>
+            `;
+            gridDiv.appendChild(yearCard);
+        }
+        box.appendChild(gridDiv);
+    }
+
+    function calcAll() {
+        const inv = Number(document.getElementById('inv').value);
+        const taxRate = Number(document.getElementById('taxrate').value);
+        const revs = Array.from(document.querySelectorAll('.rev')).map(el => Number(el.value) || 0);
+        const costs = Array.from(document.querySelectorAll('.cost')).map(el => Number(el.value) || 0);
+        const ints = Array.from(document.querySelectorAll('.int')).map(el => Number(el.value) || 0);
+        const deps = Array.from(document.querySelectorAll('.dep')).map(el => Number(el.value) || 0);
+        if (revs.length === 0) { alert('请先生成年度录入框'); return; }
+        let cfAfter = [-inv];
+        let cfBefore = [-inv];
+        for (let i = 0; i < revs.length; i++) {
+            const profit = revs[i] - costs[i] - ints[i] - deps[i];
+            const tax = profit > 0 ? profit * taxRate : 0;
+            const afterTax = revs[i] - costs[i] - ints[i] - tax;
+            const beforeTax = revs[i] - costs[i] - ints[i];
+            cfAfter.push(afterTax);
+            cfBefore.push(beforeTax);
+        }
+        const irrAfter = calcIRR(cfAfter);
+        const irrBefore = calcIRR(cfBefore);
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:24px;">
+                <div><div class="res-title">📌 税后 IRR</div><div class="result-value">${(irrAfter * 100).toFixed(4)}%</div></div>
+                <div><div class="res-title">📌 税前 IRR</div><div class="result-value">${(irrBefore * 100).toFixed(4)}%</div></div>
+            </div>
+            <hr><div style="font-size:0.75rem;">亏损不纳税 | IRR迭代求解</div>
+        `;
+    }
+
+    // ---------- 行业知识库核心 ----------
+    const STORAGE_KEY_PREFIX = "tax_kb_";
+
+    function getStorageKey(industry) {
+        return STORAGE_KEY_PREFIX + industry;
+    }
+
+    // 默认政策数据（所有链接均为总局官网具体条文页面）
+    function getDefaultPolicies(industry) {
+        if (industry === 'software') {
+            return [
+                { title: "增值税超税负即征即退", description: "软件产品增值税实际税负超过3%的部分即征即退。", linkText: "财税〔2011〕100号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810765/c1158520/content.html" },
+                { title: "企业所得税“两免三减半”", description: "获利年度起两年免征、三年减半征收企业所得税。", linkText: "财政部 税务总局公告2019年第68号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810825/c101434/c5139187/content.html" },
+                { title: "高新技术企业15%税率", description: "通过认定企业减按15%征收所得税。", linkText: "国科发火〔2016〕32号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810760/c5139715/content.html" },
+                { title: "研发费用加计扣除", description: "研发费用按100%加计扣除。", linkText: "财政部税务总局公告2023年第7号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810825/c101434/c5163385/content.html" }
+            ];
+        } else if (industry === 'manufacturing') {
+            return [
+                { title: "制造业增值税留抵退税", description: "符合条件的制造业等企业，可申请按月全额退还增量留抵税额，并一次性退还存量留抵税额。", linkText: "财政部 税务总局公告2022年第14号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810825/c101434/c5173192/content.html" },
+                { title: "固定资产加速折旧", description: "制造业新购进的固定资产可缩短折旧年限或采取加速折旧方法。", linkText: "财税〔2019〕66号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810825/c101434/c5136543/content.html" },
+                { title: "研发费用加计扣除100%", description: "制造业企业研发费用加计扣除比例提高至100%。", linkText: "财政部 税务总局公告2021年第13号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810825/c101434/c5161482/content.html" },
+                { title: "高新技术企业优惠", description: "制造业高新技术企业减按15%税率征收企业所得税。", linkText: "国科发火〔2016〕32号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810760/c5139715/content.html" }
+            ];
+        } else {
+            return [
+                { title: "新能源发电增值税即征即退50%", description: "风力、光伏发电产品增值税即征即退50%。", linkText: "财税〔2015〕74号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810765/c1803719/content.html" },
+                { title: "企业所得税“三免三减半”", description: "新能源项目取得第一笔生产经营收入起，第一年至第三年免征所得税，第四年至第六年减半征收。", linkText: "企业所得税法实施条例", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810825/c101434/c1314964/content.html" },
+                { title: "环保节能专用设备抵免", description: "购置环保节能节水等专用设备投资额的10%可从当年应纳税额中抵免。", linkText: "财税〔2008〕48号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810765/c1162472/content.html" },
+                { title: "地方财政补贴免税", description: "新能源企业取得的地方政府补贴符合条件可作为不征税收入。", linkText: "财税〔2011〕70号", linkUrl: "http://www.chinatax.gov.cn/chinatax/n810341/n810765/c1162586/content.html" }
+            ];
+        }
+    }
+
+    function getDefaultCases(industry) {
+        const now = new Date().toLocaleString();
+        if (industry === 'software') {
+            return [
+                { id: Date.now()+1, title: "软件企业即征即退实战", content: "某软件公司2025年享受即征即退50万元，有效补充研发资金。", author: "税务顾问", timestamp: now },
+                { id: Date.now()+2, title: "两免三减半获利年度界定", content: "问：软件企业前期亏损，获利年度如何确定？答：弥补亏损后首次应纳税所得额大于0的年度。", author: "行业专家", timestamp: now }
+            ];
+        } else if (industry === 'manufacturing') {
+            return [
+                { id: Date.now()+3, title: "制造业留抵退税案例", content: "某装备制造企业2024年申请留抵退税820万元，缓解现金流压力。", author: "财务总监", timestamp: now },
+                { id: Date.now()+4, title: "加速折旧税务筹划", content: "企业购入500万元设备采用加速折旧，前三年多抵扣税款约37.5万元。", author: "税务师", timestamp: now }
+            ];
+        } else {
+            return [
+                { id: Date.now()+5, title: "光伏电站三免三减半", content: "某50MW光伏项目前三年免征所得税，累计节税超600万元。", author: "新能源投资", timestamp: now },
+                { id: Date.now()+6, title: "风电增值税即征即退", content: "陆上风电项目增值税即征即退50%，降低度电成本0.03元。", author: "财务经理", timestamp: now }
+            ];
+        }
+    }
+
+    function loadIndustryData(industry) {
+        const key = getStorageKey(industry);
+        const stored = localStorage.getItem(key);
+        if (stored) {
+            try {
+                const data = JSON.parse(stored);
+                if (data.policies && data.cases) return data;
+            } catch(e) {}
+        }
+        const defaultData = {
+            policies: getDefaultPolicies(industry),
+            cases: getDefaultCases(industry)
+        };
+        localStorage.setItem(key, JSON.stringify(defaultData));
+        return defaultData;
+    }
+
+    function saveIndustryData(industry, policies, cases) {
+        const key = getStorageKey(industry);
+        localStorage.setItem(key, JSON.stringify({ policies, cases }));
+    }
+
+    let currentIndustry = 'software';
+    let currentEditType = null; // 'policy' or 'case'
+    let currentEditIndex = null;
+    let editData = null;
+
+    function renderKnowledgeBase() {
+        const panel = document.getElementById('knowledgePanel');
+        if (!panel) return;
+        const industry = currentIndustry;
+        const data = loadIndustryData(industry);
+        let policies = data.policies;
+        let cases = data.cases;
+
+        let html = `
+            <div style="margin-bottom: 20px;">
+                <div style="font-weight:600; margin:10px 0 8px;">📜 行业税收优惠政策（可编辑/删除/新增）</div>
+                <div id="policyListContainer"></div>
+                <button class="btn small-btn add-btn" onclick="addNewPolicy()">+ 新增政策条文</button>
+            </div>
+            <div class="upload-section">
+                <div style="font-weight:600; margin-bottom:12px;">✍️ 创作者分享 · 上传案例/问题</div>
+                <div class="upload-form">
+                    <input type="text" id="newCaseTitle" placeholder="标题（例：某企业税收优惠实操）">
+                    <textarea id="newCaseContent" rows="3" placeholder="详细描述案例或税务问题..."></textarea>
+                    <input type="text" id="newCaseAuthor" placeholder="署名（选填）" value="热心创作者">
+                    <button class="btn share-btn" onclick="uploadNewCase()">📤 分享上传</button>
+                </div>
+            </div>
+            <div class="cases-list">
+                <div style="font-weight:600; margin-bottom:12px;">💡 案例与讨论区（可编辑/删除）</div>
+                <div id="casesListContainer"></div>
+            </div>
+        `;
+        panel.innerHTML = html;
+
+        const policyContainer = document.getElementById('policyListContainer');
+        policyContainer.innerHTML = '';
+        policies.forEach((p, idx) => {
+            const policyDiv = document.createElement('div');
+            policyDiv.className = 'policy-card';
+            policyDiv.innerHTML = `
+                <div class="policy-title">📌 ${escapeHtml(p.title)}</div>
+                <div class="policy-desc">${escapeHtml(p.description)}</div>
+                <div class="policy-link">🔗 <a href="${escapeHtml(p.linkUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.linkText)}</a></div>
+                <div class="policy-actions">
+                    <button class="small-btn" onclick="openEditPolicy(${idx})">✏️ 编辑</button>
+                    <button class="small-btn" onclick="deletePolicy(${idx})">🗑️ 删除</button>
+                </div>
+            `;
+            policyContainer.appendChild(policyDiv);
+        });
+
+        const casesContainer = document.getElementById('casesListContainer');
+        casesContainer.innerHTML = '';
+        if (cases.length === 0) {
+            casesContainer.innerHTML = '<div style="padding:16px; text-align:center;">暂无案例，快来分享第一条～</div>';
+        } else {
+            cases.forEach((c, idx) => {
+                const caseDiv = document.createElement('div');
+                caseDiv.className = 'case-card';
+                caseDiv.innerHTML = `
+                    <div class="case-title">📄 ${escapeHtml(c.title)}</div>
+                    <div class="case-content">${escapeHtml(c.content)}</div>
+                    <div class="case-meta">
+                        <span>👤 ${escapeHtml(c.author)} · ${c.timestamp || ''}</span>
+                        <div>
+                            <button class="small-btn" onclick="openEditCase(${idx})">✏️ 编辑</button>
+                            <button class="small-btn" onclick="deleteCase(${idx})">🗑️ 删除</button>
+                        </div>
+                    </div>
+                `;
+                casesContainer.appendChild(caseDiv);
+            });
+        }
+    }
+
+    // 打开政策编辑模态框
+    function openEditPolicy(idx) {
+        const industry = currentIndustry;
+        const data = loadIndustryData(industry);
+        const policy = data.policies[idx];
+        currentEditType = 'policy';
+        currentEditIndex = idx;
+        editData = { ...policy };
+        showModalForPolicy();
+    }
+
+    function openEditCase(idx) {
+        const industry = currentIndustry;
+        const data = loadIndustryData(industry);
+        const cas = data.cases[idx];
+        currentEditType = 'case';
+        currentEditIndex = idx;
+        editData = { ...cas };
+        showModalForCase();
+    }
+
+    function showModalForPolicy() {
+        const modal = document.getElementById('editModal');
+        document.getElementById('modalTitle').innerText = '编辑政策条文';
+        const fieldsDiv = document.getElementById('modalFields');
+        fieldsDiv.innerHTML = `
+            <input type="text" id="editTitle" placeholder="政策标题" value="${escapeHtml(editData.title)}">
+            <textarea id="editDesc" placeholder="政策描述" rows="3">${escapeHtml(editData.description)}</textarea>
+            <input type="text" id="editLinkText" placeholder="链接文字" value="${escapeHtml(editData.linkText)}">
+            <input type="text" id="editLinkUrl" placeholder="链接URL（总局具体条文网址）" value="${escapeHtml(editData.linkUrl)}">
+        `;
+        modal.style.display = 'flex';
+    }
+
+    function showModalForCase() {
+        const modal = document.getElementById('editModal');
+        document.getElementById('modalTitle').innerText = '编辑案例';
+        const fieldsDiv = document.getElementById('modalFields');
+        fieldsDiv.innerHTML = `
+            <input type="text" id="editTitle" placeholder="案例标题" value="${escapeHtml(editData.title)}">
+            <textarea id="editContent" placeholder="案例内容" rows="4">${escapeHtml(editData.content)}</textarea>
+            <input type="text" id="editAuthor" placeholder="作者署名" value="${escapeHtml(editData.author)}">
+        `;
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+        currentEditType = null;
+        currentEditIndex = null;
+        editData = null;
+    }
+
+    function saveModal() {
+        if (currentEditType === 'policy') {
+            const newTitle = document.getElementById('editTitle').value.trim();
+            const newDesc = document.getElementById('editDesc').value.trim();
+            const newLinkText = document.getElementById('editLinkText').value.trim();
+            const newLinkUrl = document.getElementById('editLinkUrl').value.trim();
+            if (!newTitle || !newDesc || !newLinkText || !newLinkUrl) {
+                alert('请填写所有字段');
+                return;
+            }
+            const industry = currentIndustry;
+            const data = loadIndustryData(industry);
+            data.policies[currentEditIndex] = {
+                title: newTitle,
+                description: newDesc,
+                linkText: newLinkText,
+                linkUrl: newLinkUrl
+            };
+            saveIndustryData(industry, data.policies, data.cases);
+        } else if (currentEditType === 'case') {
+            const newTitle = document.getElementById('editTitle').value.trim();
+            const newContent = document.getElementById('editContent').value.trim();
+            const newAuthor = document.getElementById('editAuthor').value.trim() || '匿名';
+            if (!newTitle || !newContent) {
+                alert('标题和内容不能为空');
+                return;
+            }
+            const industry = currentIndustry;
+            const data = loadIndustryData(industry);
+            data.cases[currentEditIndex] = {
+                ...data.cases[currentEditIndex],
+                title: newTitle,
+                content: newContent,
+                author: newAuthor,
+                timestamp: new Date().toLocaleString()
+            };
+            saveIndustryData(industry, data.policies, data.cases);
+        }
+        closeModal();
+        renderKnowledgeBase();
+    }
+
+    function deletePolicy(idx) {
+        if (!confirm("确定删除该政策条文吗？")) return;
+        const industry = currentIndustry;
+        const data = loadIndustryData(industry);
+        data.policies.splice(idx, 1);
+        saveIndustryData(industry, data.policies, data.cases);
+        renderKnowledgeBase();
+    }
+
+    function deleteCase(idx) {
+        if (!confirm("确定删除该案例吗？")) return;
+        const industry = currentIndustry;
+        const data = loadIndustryData(industry);
+        data.cases.splice(idx, 1);
+        saveIndustryData(industry, data.policies, data.cases);
+        renderKnowledgeBase();
+    }
+
+    function addNewPolicy() {
+        const industry = currentIndustry;
+        const data = loadIndustryData(industry);
+        const newPolicy = {
+            title: "新政策标题",
+            description: "请在此编辑政策描述内容",
+            linkText: "官方链接",
+            linkUrl: "https://www.chinatax.gov.cn/"
+        };
+        data.policies.push(newPolicy);
+        saveIndustryData(industry, data.policies, data.cases);
+        renderKnowledgeBase();
+        // 自动打开编辑框
+        setTimeout(() => openEditPolicy(data.policies.length - 1), 10);
+    }
+
+    function uploadNewCase() {
+        const title = document.getElementById('newCaseTitle').value.trim();
+        const content = document.getElementById('newCaseContent').value.trim();
+        const author = document.getElementById('newCaseAuthor').value.trim() || "热心创作者";
+        if (!title || !content) {
+            alert("请填写标题和内容");
+            return;
+        }
+        const industry = currentIndustry;
+        const data = loadIndustryData(industry);
+        const newCase = {
+            id: Date.now(),
+            title: title,
+            content: content,
+            author: author,
+            timestamp: new Date().toLocaleString()
+        };
+        data.cases.unshift(newCase);
+        saveIndustryData(industry, data.policies, data.cases);
+        document.getElementById('newCaseTitle').value = '';
+        document.getElementById('newCaseContent').value = '';
+        document.getElementById('newCaseAuthor').value = '热心创作者';
+        renderKnowledgeBase();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function switchIndustry(industry) {
+        currentIndustry = industry;
+        renderKnowledgeBase();
+        document.querySelectorAll('.industry-tab').forEach(tab => {
+            if (tab.getAttribute('data-industry') === industry) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+    }
+
+    function initIndustryTabs() {
+        const tabs = document.querySelectorAll('.industry-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const industry = tab.getAttribute('data-industry');
+                if (industry) switchIndustry(industry);
+            });
+        });
+    }
+
+    window.openEditPolicy = openEditPolicy;
+    window.openEditCase = openEditCase;
+    window.deletePolicy = deletePolicy;
+    window.deleteCase = deleteCase;
+    window.addNewPolicy = addNewPolicy;
+    window.uploadNewCase = uploadNewCase;
+    window.closeModal = closeModal;
+    window.saveModal = saveModal;
+    window.createRows = createRows;
+    window.calcAll = calcAll;
+
+    window.onload = () => {
+        createRows();
+        initIndustryTabs();
+        switchIndustry('software');
+    };
+</script>
+</body>
+</html>
