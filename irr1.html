@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>政策驱动IRR测算 · 分年税率+研发加计+加速折旧</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e9f0fc 0%, #d9e2f2 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 32px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 28px 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #eef2fa;
+            padding-bottom: 16px;
+        }
+
+        .card-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1f2f5c, #2c4b8c);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .param-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .param-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafd;
+            padding: 6px 16px 6px 12px;
+            border-radius: 60px;
+            border: 1px solid #e2eaf5;
+        }
+
+        .param-group label {
+            font-weight: 500;
+            color: #1e2f47;
+            font-size: 0.85rem;
+        }
+
+        .param-group input, .param-group select {
+            border: none;
+            background: transparent;
+            padding: 8px 0 8px 4px;
+            width: 110px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .btn {
+            background: #2c5f8a;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(105deg, #2b5f8a, #1f4980);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(105deg, #236d9c, #1b3f6e);
+        }
+
+        .btn-calc {
+            background: linear-gradient(105deg, #2b7a4b, #1d5e3a);
+            padding: 12px 28px;
+            font-size: 1rem;
+        }
+
+        .btn-calc:hover {
+            background: linear-gradient(105deg, #32965c, #227548);
+            transform: translateY(-2px);
+        }
+
+        .year-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .year-card {
+            background: #ffffffdd;
+            border-radius: 24px;
+            padding: 12px 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #eef2fc;
+        }
+
+        .year-label {
+            font-weight: 700;
+            background: #eef3fc;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #215c7e;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .input-group-sm {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #fafcff;
+            border: 1px solid #e2edf9;
+            border-radius: 32px;
+            padding: 4px 12px;
+            flex: 1 0 auto;
+            min-width: 100px;
+        }
+
+        .input-group-sm span {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #5b6f8c;
+        }
+
+        .input-group-sm input {
+            border: none;
+            background: transparent;
+            width: 80px;
+            padding: 6px 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .result-card {
+            background: linear-gradient(115deg, #edf4fc, #e3edf8);
+            border-radius: 28px;
+            padding: 20px 24px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: monospace;
+            background: #1e2f41;
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 60px;
+            color: #c9f0ff;
+            margin: 12px 8px 0 8px;
+        }
+
+        .industry-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+            border-bottom: 1px solid #cfdfef;
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .industry-tab {
+            background: transparent;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #2c6288;
+            transition: 0.2s;
+        }
+
+        .industry-tab.active {
+            background: #2c5f8a;
+            color: white;
+        }
+
+        .policy-card {
+            background: #f8fafd;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 5px solid #2c7da0;
+        }
+
+        .policy-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #1f4980;
+        }
+
+        .policy-desc {
+            font-size: 0.85rem;
+            color: #2c3e50;
+            margin: 8px 0;
+        }
+
+        .policy-link a {
+            color: #2c7da0;
+            text-decoration: none;
+            font-size: 0.75rem;
+        }
+
+        .policy-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .small-btn {
+            background: #e2eaf5;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: #1f4980;
+        }
+
+        .add-btn, .share-btn {
+            background: #2b7a4b;
+            color: white;
+            margin-top: 12px;
+        }
+
+        .upload-section {
+            background: #eef3fc;
+            border-radius: 24px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .upload-form input, .upload-form textarea {
+            width: 100%;
+            border: 1px solid #cbddea;
+            border-radius: 20px;
+            padding: 10px 14px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .cases-list {
+            margin-top: 20px;
+        }
+
+        .case-card {
+            background: white;
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            border: 1px solid #e2edf9;
+        }
+
+        .case-title {
+            font-weight: 700;
+            color: #1a4b6e;
+        }
+
+        .case-content {
+            font-size: 0.85rem;
+            color: #2c3e50;
+            margin: 6px 0;
+        }
+
+        .case-meta {
+            font-size: 0.7rem;
+            color: #6c86a3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 16px;
+            border: 1px solid #ccc;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 680px) {
+            .year-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .input-group-sm {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- IRR 测算卡片 -->
+    <div class="card">
+        <div class="card-header">
+            <span class="emoji">📊</span>
+            <h3>政策驱动IRR测算 · 分年税率 · 研发加计 · 加速折旧</h3>
+        </div>
+        <div class="param-row">
+            <div class="param-group"><label>💰 初始投资额</label><input id="inv" value="1000" type="number" step="0.01"></div>
+            <div class="param-group"><label>📅 项目年限</label><input id="nyear" value="3" type="number" min="1" step="1"></div>
+            <button class="btn btn-primary" onclick="createRows()">生成年度录入框</button>
+        </div>
+        <div style="font-size:0.75rem; color:#4a6a8a; margin-top: 8px;">
+            💡 提示：每年可单独设置税率、研发费用、折旧。点击政策卡片中的“应用到测算”可自动配置。
+        </div>
+    </div>
+
+    <div class="card" id="yearBox"></div>
+
+    <div class="card result-card">
+        <button class="btn btn-calc" onclick="calcAll()">📈 重新计算 IRR</button>
+        <div id="result" style="margin-top: 20px;"></div>
+    </div>
+
+    <!-- 行业知识库模块（原样保留，增加政策应用按钮） -->
+    <div class="card">
+        <div class="card-header">
+            <span class="emoji">📚</span>
+            <h3>税务分行业案例知识库 · 政策可编辑/应用</h3>
+        </div>
+        <div class="industry-tabs" id="industryTabs">
+            <button class="industry-tab active" data-industry="software">💻 软件行业</button>
+            <button class="industry-tab" data-industry="manufacturing">🏭 制造业</button>
+            <button class="industry-tab" data-industry="newenergy">☀️ 新能源行业</button>
+        </div>
+        <div id="knowledgePanel"></div>
+    </div>
+    <footer style="text-align:center; font-size:0.7rem; color:#6b7e9e;">政策应用会修改税率/研发费用/折旧设置，IRR自动更新 | 所有数据保存在浏览器本地</footer>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h4 id="modalTitle">编辑内容</h4>
+        <div id="modalFields"></div>
+        <div class="modal-buttons">
+            <button class="btn" onclick="closeModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveModal()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== 全局变量 ==========
+    let currentIndustry = 'software';
+    let currentEditType = null;
+    let currentEditIndex = null;
+    let editData = null;
+
+    // ========== IRR 计算核心 ==========
+    function calcIRR(cashFlows, guess = 0.1) {
+        const eps = 1e-8;
+        const maxIter = 100;
+        let r = guess;
+        for (let it = 0; it < maxIter; it++) {
+            let f = 0, df = 0;
+            for (let i = 0; i < cashFlows.length; i++) {
+                const t = i;
+                const denom = Math.pow(1 + r, t);
+                f += cashFlows[i] / denom;
+                df -= t * cashFlows[i] / (denom * (1 + r));
+            }
+            const dr = f / df;
+            r = r - dr;
+            if (Math.abs(dr) < eps) break;
+        }
+        return r;
+    }
+
+    // 生成年度数据行 (支持税率、研发费用、折旧)
+    function createRows() {
+        const n = parseInt(document.getElementById('nyear').value) || 1;
+        const box = document.getElementById('yearBox');
+        if (!box) return;
+        box.innerHTML = '';
+        if (n <= 0) return;
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'year-grid';
+        for (let i = 1; i <= n; i++) {
+            const yearCard = document.createElement('div');
+            yearCard.className = 'year-card';
+            yearCard.innerHTML = `
+                <div class="year-label">第 ${i} 年</div>
+                <div class="input-group-sm"><span>💰 营收</span><input class="rev" placeholder="0" type="number" step="0.01"></div>
+                <div class="input-group-sm"><span>📉 付现成本</span><input class="cost" placeholder="0" type="number" step="0.01"></div>
+                <div class="input-group-sm"><span>🏦 利息</span><input class="int" placeholder="0" type="number" step="0.01"></div>
+                <div class="input-group-sm"><span>📦 折旧</span><input class="dep" placeholder="0" type="number" step="0.01"></div>
+                <div class="input-group-sm"><span>🔬 研发费用</span><input class="rd" placeholder="0" type="number" step="0.01"></div>
+                <div class="input-group-sm"><span>📊 税率(%)</span><input class="taxrate" placeholder="25" type="number" step="0.1" value="25"></div>
+            `;
+            gridDiv.appendChild(yearCard);
+        }
+        box.appendChild(gridDiv);
+    }
+
+    // 计算所有现金流并显示IRR
+    function calcAll() {
+        const inv = Number(document.getElementById('inv').value);
+        const revs = Array.from(document.querySelectorAll('.rev')).map(el => Number(el.value) || 0);
+        const costs = Array.from(document.querySelectorAll('.cost')).map(el => Number(el.value) || 0);
+        const ints = Array.from(document.querySelectorAll('.int')).map(el => Number(el.value) || 0);
+        const deps = Array.from(document.querySelectorAll('.dep')).map(el => Number(el.value) || 0);
+        const rds = Array.from(document.querySelectorAll('.rd')).map(el => Number(el.value) || 0);
+        const taxRates = Array.from(document.querySelectorAll('.taxrate')).map(el => Number(el.value) || 0);
+
+        if (revs.length === 0) { alert('请先生成年度录入框'); return; }
+        let cfAfter = [-inv];
+        let cfBefore = [-inv];
+
+        for (let i = 0; i < revs.length; i++) {
+            const R = revs[i];
+            const C = costs[i];
+            const I = ints[i];
+            const D = deps[i];
+            const RD = rds[i];
+            const taxRate = taxRates[i] / 100;  // 转换为小数
+
+            // 税前利润 = 营收 - 付现成本 - 利息 - 折旧 - 研发费用（研发费用本身在会计上已计入成本，但加计扣除在税务上额外扣除）
+            // 为简化，税前利润 = 营收 - 付现成本 - 利息 - 折旧 - 研发费用
+            let profitBeforeTax = R - C - I - D - RD;
+            // 加计扣除：研发费用可在税前额外扣除100% (即再加一倍扣除额)
+            let extraDeduction = RD;  // 加计100%扣除
+            let taxableIncome = profitBeforeTax - extraDeduction;
+            if (taxableIncome < 0) taxableIncome = 0;
+            const tax = taxableIncome * taxRate;
+            const afterTax = R - C - I - tax;  // 折旧和研发费用已通过利润影响税收，注意这里不再重复减折旧/研发（因为已包含在R-C-I中？需要仔细）
+            // 更精确的税后现金流 = 营收 - 付现成本 - 利息 - 所得税（折旧是非付现成本，已在税前利润中扣除，但不影响现金流；加计扣除同样只影响税）
+            // 正确公式：税后现金流 = 营收 - 付现成本 - 利息 - 所得税
+            // 因为折旧和研发费用不直接减少现金流，只减少应税所得。
+            // 重新计算：
+            const profitBeforeTaxCash = R - C - I;  // 不考虑折旧和研发费用（非付现）
+            const taxableIncome2 = profitBeforeTaxCash - D - RD - extraDeduction; // D和RD作为扣除项
+            const tax2 = Math.max(0, taxableIncome2) * taxRate;
+            const cf = R - C - I - tax2;
+            cfAfter.push(cf);
+            cfBefore.push(R - C - I);
+        }
+        const irrAfter = calcIRR(cfAfter);
+        const irrBefore = calcIRR(cfBefore);
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:24px;">
+                <div><div class="res-title">📌 税后 IRR</div><div class="result-value">${(irrAfter * 100).toFixed(4)}%</div></div>
+                <div><div class="res-title">📌 税前 IRR</div><div class="result-value">${(irrBefore * 100).toFixed(4)}%</div></div>
+            </div>
+            <hr><div style="font-size:0.75rem;">税后已考虑研发费用加计扣除（额外扣除100%）及分年税率</div>
+        `;
+    }
+
+    // ========== 政策应用到测算 ==========
+    function applyPolicyToIRR(policyTitle) {
+        const years = document.querySelectorAll('.year-card').length;
+        if (years === 0) {
+            alert('请先生成年度录入框');
+            return;
+        }
+        const taxInputs = document.querySelectorAll('.taxrate');
+        const rdInputs = document.querySelectorAll('.rd');
+        const depInputs = document.querySelectorAll('.dep');
+
+        // 根据政策标题执行不同的操作
+        if (policyTitle.includes('两免三减半') || (policyTitle.includes('软件企业') && policyTitle.includes('所得税'))) {
+            // 两免三减半：前两年税率0%，第三至五年7.5%，第六年起恢复25%（简化：按项目年限）
+            for (let i = 0; i < taxInputs.length; i++) {
+                if (i < 2) taxInputs[i].value = 0;
+                else if (i < 5) taxInputs[i].value = 7.5;
+                else taxInputs[i].value = 25;
+            }
+            alert('已应用“两免三减半”：第1-2年税率0%，第3-5年7.5%，之后25%。请按需调整。');
+        } 
+        else if (policyTitle.includes('高新技术')) {
+            for (let i = 0; i < taxInputs.length; i++) taxInputs[i].value = 15;
+            alert('已应用高新技术企业优惠：所有年份税率设为15%');
+        }
+        else if (policyTitle.includes('研发费用加计扣除')) {
+            // 提示用户填写研发费用，并自动启用加计扣除（已在 calcAll 中实现）
+            alert('研发费用加计扣除已生效。请在每年“研发费用”列输入实际研发支出，系统将自动加计100%扣除。');
+        }
+        else if (policyTitle.includes('加速折旧')) {
+            // 将每年的折旧额翻倍（简单加速）
+            for (let i = 0; i < depInputs.length; i++) {
+                let old = parseFloat(depInputs[i].value) || 0;
+                depInputs[i].value = (old * 2).toFixed(2);
+            }
+            alert('已应用加速折旧：各年折旧额翻倍。可手动调整。');
+        }
+        else if (policyTitle.includes('增值税留抵退税')) {
+            alert('留抵退税政策不直接改变IRR模型中的参数，但会改善现金流。您可在“营收”或“付现成本”中模拟退税影响。');
+        }
+        else {
+            alert(`政策“${policyTitle}”暂未绑定自动参数，请手动调整。`);
+        }
+        // 可选自动重新计算
+        if (confirm('是否立即重新计算IRR？')) calcAll();
+    }
+
+    // ========== 知识库管理 (原样保留，增加政策应用按钮) ==========
+    const STORAGE_KEY_PREFIX = "tax_kb_";
+    function getStorageKey(industry) { return STORAGE_KEY_PREFIX + industry; }
+
+    function getDefaultPolicies(industry) {
+        if (industry === 'software') {
+            return [
+                { title: "软件企业增值税即征即退", description: "软件产品增值税税负超3%即征即退", linkText: "财税〔2011〕100号", linkUrl: "http://www.chinatax.gov.cn/..." },
+                { title: "软件企业所得税“两免三减半”", description: "获利年度起两年免征、三年减半", linkText: "财税〔2019〕68号", linkUrl: "http://www.chinatax.gov.cn/..." },
+                { title: "高新技术企业15%税率", description: "认定企业减按15%征收所得税", linkText: "国科发火〔2016〕32号", linkUrl: "http://www.chinatax.gov.cn/..." },
+                { title: "研发费用加计扣除100%", description: "研发费用在税前加计100%扣除", linkText: "财政部公告2023年第7号", linkUrl: "http://www.chinatax.gov.cn/..." }
+            ];
+        } else if (industry === 'manufacturing') {
+            return [
+                { title: "制造业增值税留抵退税", description: "按月全额退还增量留抵税额", linkText: "财政部 税务总局公告2022年第14号", linkUrl: "http://www.chinatax.gov.cn/..." },
+                { title: "固定资产加速折旧", description: "新购固定资产可缩短折旧年限", linkText: "财税〔2019〕66号", linkUrl: "http://www.chinatax.gov.cn/..." },
+                { title: "研发费用加计扣除100%", description: "制造业加计扣除比例100%", linkText: "财政部公告2021年第13号", linkUrl: "http://www.chinatax.gov.cn/..." },
+                { title: "高新技术企业优惠", description: "制造业高新企业15%税率", linkText: "国科发火〔2016〕32号", linkUrl: "http://www.chinatax.gov.cn/..." }
+            ];
+        } else {
+            return [
+                { title: "新能源增值税即征即退50%", description: "光伏、风电即征即退50%", linkText: "财税〔2015〕74号", linkUrl: "http://www.chinatax.gov.cn/..." },
+                { title: "企业所得税“三免三减半”", description: "项目取得第一笔收入起前三年免征，后三年减半", linkText: "企业所得税法实施条例", linkUrl: "http://www.chinatax.gov.cn/..." },
+                { title: "环保专用设备抵免", description: "投资额10%抵免应纳税额", linkText: "财税〔2008〕48号", linkUrl: "http://www.chinatax.gov.cn/..." }
+            ];
+        }
+    }
+
+    function getDefaultCases(industry) {
+        const now = new Date().toLocaleString();
+        if (industry === 'software') return [{ id: Date.now(), title: "软件企业案例", content: "某软件公司享受即征即退50万元", author: "税务顾问", timestamp: now }];
+        if (industry === 'manufacturing') return [{ id: Date.now(), title: "制造业加速折旧案例", content: "购入设备加速折旧，节税显著", author: "财务总监", timestamp: now }];
+        return [{ id: Date.now(), title: "光伏电站三免三减半", content: "50MW光伏项目前三年免税", author: "新能源投资", timestamp: now }];
+    }
+
+    function loadIndustryData(industry) {
+        const key = getStorageKey(industry);
+        const stored = localStorage.getItem(key);
+        if (stored) return JSON.parse(stored);
+        const defaultData = { policies: getDefaultPolicies(industry), cases: getDefaultCases(industry) };
+        localStorage.setItem(key, JSON.stringify(defaultData));
+        return defaultData;
+    }
+
+    function saveIndustryData(industry, policies, cases) {
+        localStorage.setItem(getStorageKey(industry), JSON.stringify({ policies, cases }));
+    }
+
+    function renderKnowledgeBase() {
+        const panel = document.getElementById('knowledgePanel');
+        if (!panel) return;
+        const data = loadIndustryData(currentIndustry);
+        const policies = data.policies;
+        const cases = data.cases;
+        let html = `
+            <div><div style="font-weight:600;">📜 行业税收优惠政策</div><div id="policyListContainer"></div>
+            <button class="btn small-btn add-btn" onclick="addNewPolicy()">+ 新增政策条文</button></div>
+            <div class="upload-section">
+                <div style="font-weight:600;">✍️ 创作者分享</div>
+                <div class="upload-form">
+                    <input type="text" id="newCaseTitle" placeholder="标题">
+                    <textarea id="newCaseContent" rows="2" placeholder="案例内容"></textarea>
+                    <input type="text" id="newCaseAuthor" placeholder="署名" value="热心创作者">
+                    <button class="btn share-btn" onclick="uploadNewCase()">📤 分享上传</button>
+                </div>
+            </div>
+            <div><div style="font-weight:600;">💡 案例讨论区</div><div id="casesListContainer"></div></div>
+        `;
+        panel.innerHTML = html;
+        const policyContainer = document.getElementById('policyListContainer');
+        policyContainer.innerHTML = '';
+        policies.forEach((p, idx) => {
+            const div = document.createElement('div');
+            div.className = 'policy-card';
+            div.innerHTML = `
+                <div class="policy-title">📌 ${escapeHtml(p.title)}</div>
+                <div class="policy-desc">${escapeHtml(p.description)}</div>
+                <div class="policy-link">🔗 <a href="${escapeHtml(p.linkUrl)}" target="_blank">${escapeHtml(p.linkText)}</a></div>
+                <div class="policy-actions">
+                    <button class="small-btn" onclick="openEditPolicy(${idx})">✏️ 编辑</button>
+                    <button class="small-btn" onclick="deletePolicy(${idx})">🗑️ 删除</button>
+                    <button class="small-btn" onclick="applyPolicyToIRR('${escapeHtml(p.title)}')">📊 应用到测算</button>
+                </div>
+            `;
+            policyContainer.appendChild(div);
+        });
+        const casesContainer = document.getElementById('casesListContainer');
+        casesContainer.innerHTML = '';
+        cases.forEach((c, idx) => {
+            const div = document.createElement('div');
+            div.className = 'case-card';
+            div.innerHTML = `
+                <div class="case-title">📄 ${escapeHtml(c.title)}</div>
+                <div class="case-content">${escapeHtml(c.content)}</div>
+                <div class="case-meta">
+                    <span>👤 ${escapeHtml(c.author)} · ${c.timestamp}</span>
+                    <button class="small-btn" onclick="openEditCase(${idx})">✏️ 编辑</button>
+                    <button class="small-btn" onclick="deleteCase(${idx})">🗑️ 删除</button>
+                </div>
+            `;
+            casesContainer.appendChild(div);
+        });
+    }
+
+    function openEditPolicy(idx) { currentEditType='policy'; currentEditIndex=idx; const data=loadIndustryData(currentIndustry); editData={...data.policies[idx]}; showModalForPolicy(); }
+    function openEditCase(idx) { currentEditType='case'; currentEditIndex=idx; const data=loadIndustryData(currentIndustry); editData={...data.cases[idx]}; showModalForCase(); }
+    function showModalForPolicy() { /* 同原版 */ document.getElementById('modalTitle').innerText='编辑政策'; document.getElementById('modalFields').innerHTML=`<input id="editTitle" value="${escapeHtml(editData.title)}"><textarea id="editDesc">${escapeHtml(editData.description)}</textarea><input id="editLinkText" value="${escapeHtml(editData.linkText)}"><input id="editLinkUrl" value="${escapeHtml(editData.linkUrl)}">`; document.getElementById('editModal').style.display='flex'; }
+    function showModalForCase() { document.getElementById('modalTitle').innerText='编辑案例'; document.getElementById('modalFields').innerHTML=`<input id="editTitle" value="${escapeHtml(editData.title)}"><textarea id="editContent">${escapeHtml(editData.content)}</textarea><input id="editAuthor" value="${escapeHtml(editData.author)}">`; document.getElementById('editModal').style.display='flex'; }
+    function closeModal() { document.getElementById('editModal').style.display='none'; currentEditType=null; }
+    function saveModal() {
+        if (currentEditType === 'policy') {
+            const newTitle = document.getElementById('editTitle').value.trim();
+            const newDesc = document.getElementById('editDesc').value.trim();
+            const newLinkText = document.getElementById('editLinkText').value.trim();
+            const newLinkUrl = document.getElementById('editLinkUrl').value.trim();
+            if (!newTitle || !newDesc) return alert('请填写标题和描述');
+            const data = loadIndustryData(currentIndustry);
+            data.policies[currentEditIndex] = { title:newTitle, description:newDesc, linkText:newLinkText, linkUrl:newLinkUrl };
+            saveIndustryData(currentIndustry, data.policies, data.cases);
+        } else if (currentEditType === 'case') {
+            const newTitle = document.getElementById('editTitle').value.trim();
+            const newContent = document.getElementById('editContent').value.trim();
+            const newAuthor = document.getElementById('editAuthor').value.trim() || '匿名';
+            if (!newTitle || !newContent) return alert('标题和内容不能为空');
+            const data = loadIndustryData(currentIndustry);
+            data.cases[currentEditIndex] = { ...data.cases[currentEditIndex], title:newTitle, content:newContent, author:newAuthor, timestamp:new Date().toLocaleString() };
+            saveIndustryData(currentIndustry, data.policies, data.cases);
+        }
+        closeModal();
+        renderKnowledgeBase();
+    }
+    function deletePolicy(idx) { if(confirm('删除政策？')){ const data=loadIndustryData(currentIndustry); data.policies.splice(idx,1); saveIndustryData(currentIndustry, data.policies, data.cases); renderKnowledgeBase(); } }
+    function deleteCase(idx) { if(confirm('删除案例？')){ const data=loadIndustryData(currentIndustry); data.cases.splice(idx,1); saveIndustryData(currentIndustry, data.policies, data.cases); renderKnowledgeBase(); } }
+    function addNewPolicy() { const data=loadIndustryData(currentIndustry); data.policies.push({ title:"新政策", description:"描述", linkText:"链接", linkUrl:"https://www.chinatax.gov.cn/" }); saveIndustryData(currentIndustry, data.policies, data.cases); renderKnowledgeBase(); setTimeout(()=>openEditPolicy(data.policies.length-1),10); }
+    function uploadNewCase() { const title=document.getElementById('newCaseTitle').value.trim(); const content=document.getElementById('newCaseContent').value.trim(); const author=document.getElementById('newCaseAuthor').value.trim()||"热心创作者"; if(!title||!content) return alert('请填写标题和内容'); const data=loadIndustryData(currentIndustry); data.cases.unshift({ id:Date.now(), title, content, author, timestamp:new Date().toLocaleString() }); saveIndustryData(currentIndustry, data.policies, data.cases); document.getElementById('newCaseTitle').value=''; document.getElementById('newCaseContent').value=''; renderKnowledgeBase(); }
+    function escapeHtml(str) { return str.replace(/[&<>]/g, m=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+    function switchIndustry(industry) { currentIndustry=industry; renderKnowledgeBase(); document.querySelectorAll('.industry-tab').forEach(tab=>{ if(tab.dataset.industry===industry) tab.classList.add('active'); else tab.classList.remove('active'); }); }
+    function initIndustryTabs() { document.querySelectorAll('.industry-tab').forEach(tab=>{ tab.addEventListener('click',()=>switchIndustry(tab.dataset.industry)); }); }
+
+    window.openEditPolicy=openEditPolicy; window.openEditCase=openEditCase; window.deletePolicy=deletePolicy; window.deleteCase=deleteCase; window.addNewPolicy=addNewPolicy; window.uploadNewCase=uploadNewCase; window.closeModal=closeModal; window.saveModal=saveModal; window.createRows=createRows; window.calcAll=calcAll; window.applyPolicyToIRR=applyPolicyToIRR;
+    window.onload = () => { createRows(); initIndustryTabs(); switchIndustry('software'); };
+</script>
+</body>
+</html>
