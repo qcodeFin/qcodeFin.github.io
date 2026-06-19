@@ -3,326 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>政策驱动IRR测算 · 个税/经营所得 · 专家咨询</title>
+    <title>IRR测算 · 税法知识库 · 税务AI助手</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: linear-gradient(145deg, #e9f0fc 0%, #d9e2f2 100%);
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 32px 20px;
+            font-family: 'Inter', system-ui, sans-serif;
+            padding: 32px 24px;
             min-height: 100vh;
         }
-
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
         }
-
+        .left-col {
+            flex: 1.2;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .right-content {
+            flex: 2;
+            min-width: 300px;
+        }
         .card {
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(255,255,255,0.92);
             backdrop-filter: blur(2px);
             border-radius: 32px;
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
-            padding: 28px 24px;
+            padding: 24px 22px;
             margin-bottom: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.6);
         }
-
         .card-header {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             border-bottom: 2px solid #eef2fa;
-            padding-bottom: 16px;
+            padding-bottom: 12px;
         }
-
         .card-header h3 {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 600;
             background: linear-gradient(135deg, #1f2f5c, #2c4b8c);
             background-clip: text;
-            -webkit-background-clip: text;
             color: transparent;
         }
-
         .param-row {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             margin-bottom: 20px;
         }
-
         .param-group {
             display: flex;
             align-items: center;
             gap: 8px;
             background: #f8fafd;
-            padding: 6px 16px 6px 12px;
+            padding: 6px 16px;
             border-radius: 60px;
             border: 1px solid #e2eaf5;
         }
-
-        .param-group label {
-            font-weight: 500;
-            color: #1e2f47;
-            font-size: 0.85rem;
-        }
-
-        .param-group input, .param-group select {
+        .param-group label { font-weight: 500; color: #1e2f47; }
+        .param-group input {
             border: none;
             background: transparent;
-            padding: 8px 0 8px 4px;
+            padding: 8px 0;
             width: 110px;
-            font-size: 0.9rem;
-            font-weight: 500;
             outline: none;
         }
-
         .btn {
             background: #2c5f8a;
             border: none;
             padding: 8px 20px;
             border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
             color: white;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: 0.2s;
         }
-
-        .btn-primary {
-            background: linear-gradient(105deg, #2b5f8a, #1f4980);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            background: linear-gradient(105deg, #236d9c, #1b3f6e);
-        }
-
-        .btn-calc {
-            background: linear-gradient(105deg, #2b7a4b, #1d5e3a);
-            padding: 12px 28px;
-            font-size: 1rem;
-        }
-
-        .btn-calc:hover {
-            background: linear-gradient(105deg, #32965c, #227548);
-            transform: translateY(-2px);
-        }
-
-        .year-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
+        .btn-primary { background: linear-gradient(105deg, #2b5f8a, #1f4980); }
+        .btn-primary:hover { transform: translateY(-2px); background: linear-gradient(105deg, #236d9c, #1b3f6e); }
+        .btn-calc { background: linear-gradient(105deg, #2b7a4b, #1d5e3a); padding: 10px 24px; }
+        .year-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
         .year-card {
             background: #ffffffdd;
             border-radius: 24px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 12px;
-            border: 1px solid #eef2fc;
+            gap: 10px;
         }
-
         .year-label {
             font-weight: 700;
             background: #eef3fc;
-            padding: 6px 14px;
+            padding: 4px 12px;
             border-radius: 40px;
-            font-size: 0.85rem;
-            color: #215c7e;
-            min-width: 70px;
+            font-size: 0.8rem;
+            min-width: 65px;
             text-align: center;
         }
-
         .input-group-sm {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             background: #fafcff;
             border: 1px solid #e2edf9;
             border-radius: 32px;
-            padding: 4px 12px;
-            flex: 1 0 auto;
-            min-width: 100px;
+            padding: 4px 10px;
         }
-
-        .input-group-sm span {
-            font-size: 0.7rem;
-            font-weight: 500;
-            color: #5b6f8c;
-        }
-
+        .input-group-sm span { font-size: 0.7rem; color: #5b6f8c; }
         .input-group-sm input {
+            width: 75px;
             border: none;
             background: transparent;
-            width: 80px;
-            padding: 6px 0;
-            font-size: 0.85rem;
-            font-weight: 500;
+            padding: 5px 0;
             outline: none;
         }
-
-        .result-card {
-            background: linear-gradient(115deg, #edf4fc, #e3edf8);
-            border-radius: 28px;
-            padding: 20px 24px;
-            text-align: center;
-        }
-
         .result-value {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            font-family: monospace;
             background: #1e2f41;
             display: inline-block;
-            padding: 10px 24px;
+            padding: 8px 20px;
             border-radius: 60px;
             color: #c9f0ff;
-            margin: 12px 8px 0 8px;
+            margin-top: 10px;
         }
-
-        /* 税务计算器通用布局 */
-        .tax-calc-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            margin-top: 16px;
-        }
-        .tax-input-panel {
-            flex: 1.2;
-            min-width: 240px;
-        }
-        .tax-result-panel {
-            flex: 1;
-            background: #f0f5fa;
-            border-radius: 24px;
-            padding: 20px;
-            text-align: center;
-        }
-        .tax-field {
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .tax-field label {
-            font-weight: 600;
-            color: #1e3a4d;
-            width: 160px;
-        }
-        .tax-field input, .tax-field select {
-            flex: 1;
-            padding: 10px 14px;
-            border-radius: 32px;
-            border: 1px solid #cbddea;
-            background: white;
-            font-size: 0.9rem;
-            outline: none;
-        }
-        .tax-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            justify-content: flex-start;
-        }
-        .tax-checkbox label {
-            width: auto;
-            font-weight: normal;
-        }
-        .tax-result-item {
-            font-size: 1rem;
-            margin: 12px 0;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed #cbddea;
-            padding-bottom: 6px;
-        }
-        .tax-result-value {
-            font-weight: 700;
-            color: #2c5f8a;
-            font-size: 1.2rem;
-        }
-        .tax-note {
-            font-size: 0.7rem;
-            color: #5f7d9c;
-            margin-top: 12px;
-            text-align: left;
-        }
-
-        .industry-tabs {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 28px;
-            border-bottom: 1px solid #cfdfef;
-            padding-bottom: 12px;
-            flex-wrap: wrap;
-        }
-
-        .industry-tab {
-            background: transparent;
-            border: none;
-            padding: 8px 22px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            color: #2c6288;
-            transition: 0.2s;
-        }
-
-        .industry-tab.active {
-            background: #2c5f8a;
-            color: white;
-        }
-
         .policy-card {
             background: #f8fafd;
             border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 16px;
+            padding: 14px;
+            margin-bottom: 14px;
             border-left: 5px solid #2c7da0;
         }
-
-        .policy-title {
-            font-weight: 700;
-            font-size: 1rem;
-            color: #1f4980;
-        }
-
-        .policy-desc {
-            font-size: 0.85rem;
-            color: #2c3e50;
-            margin: 8px 0;
-        }
-
-        .policy-link a {
-            color: #2c7da0;
-            text-decoration: none;
-            font-size: 0.75rem;
-        }
-
-        .policy-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
         .small-btn {
             background: #e2eaf5;
             border: none;
@@ -330,660 +149,365 @@
             border-radius: 20px;
             font-size: 0.7rem;
             cursor: pointer;
-            color: #1f4980;
+            margin-top: 6px;
         }
-
-        .add-btn {
-            background: #2b7a4b;
-            color: white;
-            margin-top: 12px;
-        }
-
-        .lead-form-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin: 20px 0 16px;
-        }
-        .lead-field {
-            flex: 1 1 200px;
-            background: #f8fafd;
-            border-radius: 48px;
-            border: 1px solid #e2eaf5;
-            padding: 6px 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .lead-field span {
-            font-size: 1.1rem;
-        }
-        .lead-field input, .lead-field textarea {
-            border: none;
-            background: transparent;
-            width: 100%;
-            padding: 12px 0;
-            font-size: 0.9rem;
-            outline: none;
-            font-family: inherit;
-        }
-        .lead-field textarea {
-            resize: vertical;
-            padding: 8px 0;
-        }
-        .lead-message {
-            margin-top: 12px;
-            font-size: 0.85rem;
-            color: #2b7a4b;
-            font-weight: 500;
-            background: #e0f2e9;
-            padding: 12px;
-            border-radius: 24px;
-            display: none;
-        }
-        .inline-expert-link {
-            margin-top: 16px;
-            text-align: center;
-        }
-        .expert-link-btn {
-            background: transparent;
-            border: 1px solid #c96b2c;
-            color: #c96b2c;
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .expert-link-btn:hover {
-            background: #c96b2c10;
-            transform: scale(1.02);
-        }
-        .wechat-info {
-            background: #fef7e0;
-            border-radius: 28px;
-            padding: 12px 20px;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            font-size: 0.9rem;
-            border: 1px solid #ffdfa5;
-        }
-        .wechat-id {
-            font-family: monospace;
-            font-weight: 700;
-            background: white;
-            padding: 5px 12px;
-            border-radius: 40px;
-            letter-spacing: 1px;
-            color: #b45a1a;
-        }
-        .copy-wechat-btn {
-            background: #e9b35f;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            cursor: pointer;
-            color: #2c2c2c;
-            transition: 0.2s;
-        }
-        .copy-wechat-btn:hover {
-            background: #dc9a3a;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
+        .glass-chat {
+            background: rgba(170,210,170,0.2);
+            backdrop-filter: blur(16px);
             border-radius: 32px;
-            padding: 24px;
-            width: 90%;
-            max-width: 500px;
+            border: 1px solid rgba(180,210,160,0.4);
+            padding: 20px;
         }
-
-        .modal-content input,
-        .modal-content textarea {
-            width: 100%;
-            margin-bottom: 12px;
-            padding: 10px;
-            border-radius: 16px;
-            border: 1px solid #ccc;
-        }
-
-        .modal-buttons {
+        .chat-messages {
+            height: 320px;
+            overflow-y: auto;
+            margin-bottom: 16px;
             display: flex;
-            justify-content: flex-end;
+            flex-direction: column;
             gap: 12px;
-            margin-top: 16px;
         }
-
-        @media (max-width: 680px) {
-            .year-card {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .input-group-sm {
-                width: 100%;
-            }
-            .lead-form-group {
-                flex-direction: column;
-            }
-            .tax-field {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .tax-field label {
-                width: auto;
-            }
+        .message {
+            padding: 8px 14px;
+            border-radius: 20px;
+            max-width: 85%;
+            font-size: 0.85rem;
+        }
+        .message.user {
+            background: rgba(100,150,100,0.85);
+            color: white;
+            align-self: flex-end;
+        }
+        .message.assistant {
+            background: rgba(220,245,220,0.9);
+            color: #2c5a2c;
+            align-self: flex-start;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            border-radius: 40px;
+            border: 1px solid #c0d8c0;
+            padding: 10px 16px;
+            background: white;
+        }
+        .lead-field-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .lead-field-row input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 40px;
+            border: 1px solid #cbddea;
+            background: white;
+        }
+        @media (max-width: 900px) {
+            .container { flex-direction: column; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- IRR 测算卡片 -->
-    <div class="card">
-        <div class="card-header">
-            <span class="emoji">📊</span>
-            <h3>政策驱动IRR测算 · 分年税率 · 研发加计 · 加速折旧</h3>
-        </div>
-        <div class="param-row">
-            <div class="param-group"><label>💰 初始投资额</label><input id="inv" value="1000" type="number" step="0.01"></div>
-            <div class="param-group"><label>📅 项目年限</label><input id="nyear" value="3" type="number" min="1" step="1"></div>
-            <button class="btn btn-primary" onclick="createRows()">生成年度录入框</button>
-        </div>
-        <div style="font-size:0.75rem; color:#4a6a8a; margin-top: 8px;">
-            💡 提示：每年可单独设置税率、研发费用、折旧。点击政策卡片中的“应用到测算”可自动配置。
-        </div>
-    </div>
-
-    <div class="card" id="yearBox"></div>
-
-    <div class="card result-card">
-        <button class="btn btn-calc" onclick="calcAll()">📈 重新计算 IRR</button>
-        <div id="result" style="margin-top: 20px;"></div>
-        <div class="inline-expert-link">
-            <button class="expert-link-btn" id="scrollToLeadBtn">✨ 想进一步提升IRR？获取专家优化方案 ✨</button>
-        </div>
-    </div>
-
-    <!-- ========= 个人所得税计算器（工资薪金） ========= -->
-    <div class="card">
-        <div class="card-header">
-            <span class="emoji">🧾</span>
-            <h3>个人所得税计算器 · 工资薪金综合所得</h3>
-        </div>
-        <div class="tax-calc-grid">
-            <div class="tax-input-panel">
-                <div class="tax-field">
-                    <label>💰 月税前工资 (元)</label>
-                    <input type="number" id="preTaxSalary" value="15000" step="500">
-                </div>
-                <div class="tax-field">
-                    <label>🏦 社保公积金个人部分 (元)</label>
-                    <input type="number" id="socialSecurity" value="1500" step="100">
-                </div>
-                <div class="tax-field">
-                    <label>👨‍👩‍👧 专项附加扣除 (元/月)</label>
-                    <input type="number" id="specialDeduction" value="2000" step="500">
-                </div>
-                <div class="tax-field">
-                    <label>📌 其他扣除 (元/月)</label>
-                    <input type="number" id="otherDeduction" value="0" step="100">
-                </div>
-                <div class="tax-field">
-                    <label>⚖️ 起征点 (元/月)</label>
-                    <input type="number" id="threshold" value="5000" disabled>
-                </div>
+    <!-- 左侧：AI聊天 + 获客表单 -->
+    <div class="left-col">
+        <!-- AI 聊天窗口（保留前端直接调用大模型 API，也可改成后端代理，保持简单） -->
+        <div class="glass-chat">
+            <div style="font-weight:700; margin-bottom:12px;">🌿 税务AI助手</div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">您好！请随时提问税务问题～</div>
             </div>
-            <div class="tax-result-panel">
-                <div class="tax-result-item"><span>📉 每月应纳税所得额</span><span class="tax-result-value" id="monthlyTaxable">0.00</span></div>
-                <div class="tax-result-item"><span>💸 每月应缴个税</span><span class="tax-result-value" id="monthlyTax">0.00</span></div>
-                <div class="tax-result-item"><span>🏧 每月税后工资</span><span class="tax-result-value" id="monthlyNet">0.00</span></div>
-                <div class="tax-result-item"><span>📆 全年累计个税</span><span class="tax-result-value" id="yearlyTax">0.00</span></div>
-                <div class="tax-note">⚡ 依据综合所得七级超额累进税率表计算（3%-45%）。</div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="输入问题...">
+                <button id="sendChatBtn" class="btn">发送</button>
+            </div>
+            <div class="api-settings" style="text-align:center; margin-top:8px; font-size:0.7rem;">
+                <span id="apiKeyStatus">⚙️ 未配置API密钥，使用演示模式</span>
+                <button id="configApiBtn" style="background:none; border:none; color:#2c5f8a; text-decoration:underline; cursor:pointer;">配置</button>
+            </div>
+        </div>
+        <!-- 获客卡片 -->
+        <div class="card">
+            <div class="card-header"><span>🎯</span><h3>免费税务筹划诊断</h3></div>
+            <div class="lead-field-row"><input type="text" id="leadName" placeholder="姓名 *"></div>
+            <div class="lead-field-row"><input type="text" id="leadCompany" placeholder="公司 *"></div>
+            <div class="lead-field-row"><input type="tel" id="leadPhone" placeholder="手机 *"></div>
+            <div style="display:flex; gap:12px; justify-content:flex-end;">
+                <button id="submitLeadBtn" class="btn btn-primary">提交</button>
+                <button id="resetLeadBtn" class="btn">重置</button>
+            </div>
+            <div id="leadMsg" style="margin-top:10px; font-size:0.8rem;"></div>
+            <div class="wechat-row" style="margin-top:16px; background:#fef7e0; border-radius:28px; padding:10px 16px; display:flex; justify-content:space-between;">
+                <span>🤝 专家微信 N1308635859</span>
+                <button id="copyWechatBtn" style="background:#e9b35f; border:none; border-radius:30px; padding:4px 12px;">复制</button>
             </div>
         </div>
     </div>
 
-    <!-- ========= 个体工商户/个人独资企业经营所得计算器（新增） ========= -->
-    <div class="card">
-        <div class="card-header">
-            <span class="emoji">🏪</span>
-            <h3>个体工商户/个人独资企业 · 经营所得计算器</h3>
-        </div>
-        <div class="tax-calc-grid">
-            <div class="tax-input-panel">
-                <div class="tax-field">
-                    <label>📊 年收入总额 (元)</label>
-                    <input type="number" id="businessIncome" value="300000" step="10000">
-                </div>
-                <div class="tax-field">
-                    <label>📉 成本费用损失 (元)</label>
-                    <input type="number" id="businessCost" value="120000" step="10000">
-                </div>
-                <div class="tax-field">
-                    <label>👤 业主费用扣除 (年/元)</label>
-                    <input type="number" id="ownerDeduction" value="60000" step="10000">
-                    <div style="font-size:0.7rem; color:#5c6f87;">默认6万元/年</div>
-                </div>
-                <div class="tax-field tax-checkbox">
-                    <input type="checkbox" id="halfReduction" style="width:20px;">
-                    <label>✅ 享受个体工商户减半征收 (应纳税所得额≤200万元部分减半)</label>
-                </div>
-                <div class="tax-note">📌 经营所得适用5%~35%超额累进税率（年度）。减半政策仅限个体工商户，个人独资企业请勿勾选。</div>
+    <!-- 右侧内容 -->
+    <div class="right-content">
+        <!-- IRR 测算 -->
+        <div class="card">
+            <div class="card-header"><span>📊</span><h3>IRR测算（政策驱动）</h3></div>
+            <div class="param-row">
+                <div class="param-group"><label>初始投资</label><input type="number" id="initialInv" value="1000" step="0.01"></div>
+                <div class="param-group"><label>项目年限</label><input type="number" id="yearsCount" value="3" min="1" step="1"></div>
+                <button id="generateYearsBtn" class="btn btn-primary">生成年份表</button>
             </div>
-            <div class="tax-result-panel">
-                <div class="tax-result-item"><span>📌 应纳税所得额</span><span class="tax-result-value" id="taxableBusiness">0.00</span></div>
-                <div class="tax-result-item"><span>📊 适用税率</span><span class="tax-result-value" id="businessRate">0%</span></div>
-                <div class="tax-result-item"><span>⚡ 速算扣除数</span><span class="tax-result-value" id="businessQuickDeduction">0.00</span></div>
-                <div class="tax-result-item"><span>💰 应纳税额</span><span class="tax-result-value" id="businessTax">0.00</span></div>
-                <div class="tax-result-item" id="halfTaxItem" style="display:none;"><span>✨ 减半后应纳税额</span><span class="tax-result-value" id="businessTaxHalf">0.00</span></div>
-                <div class="tax-note">税率表：≤3万5%，3-9万10%(速算1500)，9-30万20%(10500)，30-50万30%(40500)，＞50万35%(65500)。</div>
-            </div>
+            <div id="yearsContainer"></div>
+            <button id="calcIrrBtn" class="btn btn-calc" style="margin-top:16px;">计算 IRR</button>
+            <div id="irrResult" style="margin-top:20px; text-align:center;"></div>
         </div>
-    </div>
 
-    <!-- 行业知识库模块 -->
-    <div class="card">
-        <div class="card-header">
-            <span class="emoji">📚</span>
-            <h3>税务分行业案例知识库 · 政策可编辑/应用</h3>
+        <!-- 通用税法知识库（静态，不涉及后端） -->
+        <div class="card">
+            <div class="card-header"><span>📜</span><h3>通用税法知识库</h3></div>
+            <div id="generalPolicies"></div>
         </div>
-        <div class="industry-tabs" id="industryTabs">
-            <button class="industry-tab active" data-industry="software">💻 软件行业</button>
-            <button class="industry-tab" data-industry="manufacturing">🏭 制造业</button>
-            <button class="industry-tab" data-industry="newenergy">☀️ 新能源行业</button>
-        </div>
-        <div id="knowledgePanel"></div>
-    </div>
-
-    <!-- 获客卡片 -->
-    <div class="card" id="leadCaptureCard">
-        <div class="card-header">
-            <span class="emoji">🎯</span>
-            <h3>限时免费 · 一对一税务筹划诊断</h3>
-        </div>
-        <div style="font-size:0.9rem; color:#2c3e50; margin-bottom:12px;">
-            📢 提交信息，资深税务专家为您量身定制 <strong>政策组合方案 + IRR提升路径</strong>，并赠送《2025重点行业税收优惠白皮书》。
-        </div>
-        <form id="leadForm">
-            <div class="lead-form-group">
-                <div class="lead-field"><span>👤</span><input type="text" id="leadName" placeholder="您的姓名 *" required></div>
-                <div class="lead-field"><span>🏢</span><input type="text" id="leadCompany" placeholder="公司名称 *" required></div>
-                <div class="lead-field"><span>📞</span><input type="tel" id="leadPhone" placeholder="手机号码 *" required></div>
-                <div class="lead-field"><span>📧</span><input type="email" id="leadEmail" placeholder="电子邮箱"></div>
+        <!-- 行业税法知识库（静态） -->
+        <div class="card">
+            <div class="card-header"><span>🏭</span><h3>行业税法知识库</h3></div>
+            <div class="industry-tabs" id="industryTabs">
+                <button class="industry-tab active" data-industry="software">软件</button>
+                <button class="industry-tab" data-industry="manufacturing">制造</button>
+                <button class="industry-tab" data-industry="newenergy">新能源</button>
             </div>
-            <div class="lead-field" style="width:100%; margin-top: -8px;">
-                <span>💬</span>
-                <textarea id="leadDemand" rows="2" placeholder="您当前的项目痛点或希望优化的税率/折旧问题（选填）"></textarea>
-            </div>
-            <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 16px;">
-                <button type="button" class="btn btn-primary" id="submitLeadBtn">📨 立即获取专家诊断</button>
-                <button type="button" class="btn" id="resetLeadBtn" style="background:#9aaebf;">重置</button>
-            </div>
-            <div id="leadResultMsg" class="lead-message"></div>
-        </form>
-        <div class="wechat-info">
-            <span>🤝 也可直接添加税务专家微信，一对一咨询：</span>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span class="wechat-id">N1308635859</span>
-                <button class="copy-wechat-btn" id="copyWechatBtn">📋 复制微信号</button>
-            </div>
-        </div>
-        <div style="font-size:0.7rem; margin-top: 16px; color:#5c6f87; border-top: 1px solid #e2edf9; padding-top: 12px;">
-            🔒 信息仅用于税务专家联系，提供一对一咨询。我们承诺7x24h隐私保护。
-        </div>
-    </div>
-    <footer style="text-align:center; font-size:0.7rem; color:#6b7e9e;">政策应用会修改税率/研发费用/折旧设置，IRR自动更新 | 个税/经营所得仅供参考</footer>
-</div>
-
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h4 id="modalTitle">编辑内容</h4>
-        <div id="modalFields"></div>
-        <div class="modal-buttons">
-            <button class="btn" onclick="closeModal()">取消</button>
-            <button class="btn btn-primary" onclick="saveModal()">保存</button>
+            <div id="industryPolicies"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // ========== 个人所得税（工资薪金） ==========
-    const taxBrackets = [
-        { upper: 3000, rate: 3, deduct: 0 },
-        { upper: 12000, rate: 10, deduct: 210 },
-        { upper: 25000, rate: 20, deduct: 1410 },
-        { upper: 35000, rate: 25, deduct: 2660 },
-        { upper: 55000, rate: 30, deduct: 4410 },
-        { upper: 80000, rate: 35, deduct: 7160 },
-        { upper: Infinity, rate: 45, deduct: 15160 }
+    // ========== 后端 API 地址（请根据实际部署修改） ==========
+    const API_BASE = 'http://localhost:3000/api';  // 后端服务地址
+
+    // ========== 通用/行业政策数据（静态，不需要后端，但可独立维护） ==========
+    const generalPolicies = [
+        { title: "增值税基本税率", desc: "一般纳税人销售货物、劳务，税率13%。", link: "https://www.chinatax.gov.cn/" },
+        { title: "企业所得税标准税率", desc: "居民企业25%，高新企业15%。", link: "https://www.chinatax.gov.cn/" },
+        { title: "研发费用加计扣除", desc: "研发费用可在税前加计100%扣除。", link: "#" }
     ];
-
-    function computeMonthlyTax(monthlyTaxable) {
-        if (monthlyTaxable <= 0) return 0;
-        for (let b of taxBrackets) {
-            if (monthlyTaxable <= b.upper) {
-                return monthlyTaxable * b.rate / 100 - b.deduct;
-            }
-        }
-        return 0;
-    }
-
-    function updatePersonalTax() {
-        const preTax = parseFloat(document.getElementById('preTaxSalary').value) || 0;
-        const social = parseFloat(document.getElementById('socialSecurity').value) || 0;
-        const special = parseFloat(document.getElementById('specialDeduction').value) || 0;
-        const other = parseFloat(document.getElementById('otherDeduction').value) || 0;
-        const threshold = 5000;
-        const taxable = preTax - social - threshold - special - other;
-        const monthlyTax = computeMonthlyTax(Math.max(0, taxable));
-        const monthlyNet = preTax - social - monthlyTax;
-        const yearlyTax = monthlyTax * 12;
-        document.getElementById('monthlyTaxable').innerText = taxable.toFixed(2);
-        document.getElementById('monthlyTax').innerText = monthlyTax.toFixed(2);
-        document.getElementById('monthlyNet').innerText = monthlyNet.toFixed(2);
-        document.getElementById('yearlyTax').innerText = yearlyTax.toFixed(2);
-    }
-
-    // ========== 经营所得计算器（五级超额累进） ==========
-    const businessTaxBrackets = [
-        { upper: 30000, rate: 5, deduct: 0 },
-        { upper: 90000, rate: 10, deduct: 1500 },
-        { upper: 300000, rate: 20, deduct: 10500 },
-        { upper: 500000, rate: 30, deduct: 40500 },
-        { upper: Infinity, rate: 35, deduct: 65500 }
-    ];
-
-    function computeBusinessTax(annualTaxable) {
-        if (annualTaxable <= 0) return { tax: 0, rate: 0, deduct: 0 };
-        for (let b of businessTaxBrackets) {
-            if (annualTaxable <= b.upper) {
-                const tax = annualTaxable * b.rate / 100 - b.deduct;
-                return { tax: Math.max(0, tax), rate: b.rate, deduct: b.deduct };
-            }
-        }
-        return { tax: 0, rate: 0, deduct: 0 };
-    }
-
-    function updateBusinessTax() {
-        const income = parseFloat(document.getElementById('businessIncome').value) || 0;
-        const cost = parseFloat(document.getElementById('businessCost').value) || 0;
-        const ownerDed = parseFloat(document.getElementById('ownerDeduction').value) || 60000;
-        let taxable = income - cost - ownerDed;
-        if (taxable < 0) taxable = 0;
-        const { tax, rate, deduct } = computeBusinessTax(taxable);
-        const halfChecked = document.getElementById('halfReduction').checked;
-        let finalTax = tax;
-        if (halfChecked && taxable <= 2000000) {
-            finalTax = tax / 2;
-        }
-        document.getElementById('taxableBusiness').innerText = taxable.toFixed(2);
-        document.getElementById('businessRate').innerText = rate + '%';
-        document.getElementById('businessQuickDeduction').innerText = deduct.toFixed(2);
-        document.getElementById('businessTax').innerText = tax.toFixed(2);
-        const halfItem = document.getElementById('halfTaxItem');
-        if (halfChecked && taxable <= 2000000) {
-            document.getElementById('businessTaxHalf').innerText = finalTax.toFixed(2);
-            halfItem.style.display = 'flex';
-        } else {
-            halfItem.style.display = 'none';
-        }
-    }
-
-    // ========== IRR 计算核心 ==========
-    function calcIRR(cashFlows, guess = 0.1) {
-        const eps = 1e-8;
-        const maxIter = 100;
-        let r = guess;
-        for (let it = 0; it < maxIter; it++) {
-            let f = 0, df = 0;
-            for (let i = 0; i < cashFlows.length; i++) {
-                const t = i;
-                const denom = Math.pow(1 + r, t);
-                f += cashFlows[i] / denom;
-                df -= t * cashFlows[i] / (denom * (1 + r));
-            }
-            const dr = f / df;
-            r = r - dr;
-            if (Math.abs(dr) < eps) break;
-        }
-        return r;
-    }
-
-    function createRows() {
-        const n = parseInt(document.getElementById('nyear').value) || 1;
-        const box = document.getElementById('yearBox');
-        if (!box) return;
-        box.innerHTML = '';
-        if (n <= 0) return;
-        const gridDiv = document.createElement('div');
-        gridDiv.className = 'year-grid';
-        for (let i = 1; i <= n; i++) {
-            const yearCard = document.createElement('div');
-            yearCard.className = 'year-card';
-            yearCard.innerHTML = `
-                <div class="year-label">第 ${i} 年</div>
-                <div class="input-group-sm"><span>💰 营收</span><input class="rev" placeholder="0" type="number" step="0.01"></div>
-                <div class="input-group-sm"><span>📉 付现成本</span><input class="cost" placeholder="0" type="number" step="0.01"></div>
-                <div class="input-group-sm"><span>🏦 利息</span><input class="int" placeholder="0" type="number" step="0.01"></div>
-                <div class="input-group-sm"><span>📦 折旧</span><input class="dep" placeholder="0" type="number" step="0.01"></div>
-                <div class="input-group-sm"><span>🔬 研发费用</span><input class="rd" placeholder="0" type="number" step="0.01"></div>
-                <div class="input-group-sm"><span>📊 税率(%)</span><input class="taxrate" placeholder="25" type="number" step="0.1" value="25"></div>
-            `;
-            gridDiv.appendChild(yearCard);
-        }
-        box.appendChild(gridDiv);
-    }
-
-    function calcAll() {
-        const inv = Number(document.getElementById('inv').value);
-        const revs = Array.from(document.querySelectorAll('.rev')).map(el => Number(el.value) || 0);
-        const costs = Array.from(document.querySelectorAll('.cost')).map(el => Number(el.value) || 0);
-        const ints = Array.from(document.querySelectorAll('.int')).map(el => Number(el.value) || 0);
-        const deps = Array.from(document.querySelectorAll('.dep')).map(el => Number(el.value) || 0);
-        const rds = Array.from(document.querySelectorAll('.rd')).map(el => Number(el.value) || 0);
-        const taxRates = Array.from(document.querySelectorAll('.taxrate')).map(el => Number(el.value) || 0);
-        if (revs.length === 0) { alert('请先生成年度录入框'); return; }
-        let cfAfter = [-inv];
-        let cfBefore = [-inv];
-        for (let i = 0; i < revs.length; i++) {
-            const R = revs[i], C = costs[i], I = ints[i], D = deps[i], RD = rds[i], taxRate = taxRates[i] / 100;
-            const profitBeforeTax = R - C - I;
-            const taxableIncome = profitBeforeTax - D - RD - RD;
-            const tax = Math.max(0, taxableIncome) * taxRate;
-            const cf = profitBeforeTax - tax;
-            cfAfter.push(cf);
-            cfBefore.push(profitBeforeTax);
-        }
-        const irrAfter = calcIRR(cfAfter);
-        const irrBefore = calcIRR(cfBefore);
-        document.getElementById('result').innerHTML = `
-            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:24px;">
-                <div><div class="res-title">📌 税后 IRR</div><div class="result-value">${(irrAfter * 100).toFixed(4)}%</div></div>
-                <div><div class="res-title">📌 税前 IRR</div><div class="result-value">${(irrBefore * 100).toFixed(4)}%</div></div>
-            </div>
-            <hr><div style="font-size:0.75rem;">税后已考虑研发费用加计扣除（额外扣除100%）及分年税率</div>
-        `;
-    }
-
-    function applyPolicyToIRR(policyTitle) {
-        if (document.querySelectorAll('.year-card').length === 0) { alert('请先生成年度录入框'); return; }
-        const taxInputs = document.querySelectorAll('.taxrate');
-        const depInputs = document.querySelectorAll('.dep');
-        if (policyTitle.includes('两免三减半') || (policyTitle.includes('软件企业') && policyTitle.includes('所得税'))) {
-            for (let i = 0; i < taxInputs.length; i++) {
-                if (i < 2) taxInputs[i].value = 0;
-                else if (i < 5) taxInputs[i].value = 7.5;
-                else taxInputs[i].value = 25;
-            }
-            alert('已应用“两免三减半”：第1-2年税率0%，第3-5年7.5%，之后25%。请按需调整。');
-        } else if (policyTitle.includes('高新技术')) {
-            for (let i = 0; i < taxInputs.length; i++) taxInputs[i].value = 15;
-            alert('已应用高新技术企业优惠：所有年份税率设为15%');
-        } else if (policyTitle.includes('研发费用加计扣除')) {
-            alert('研发费用加计扣除已生效。请在每年“研发费用”列输入实际研发支出，系统将自动加计100%扣除。');
-        } else if (policyTitle.includes('加速折旧')) {
-            for (let i = 0; i < depInputs.length; i++) {
-                let old = parseFloat(depInputs[i].value) || 0;
-                depInputs[i].value = (old * 2).toFixed(2);
-            }
-            alert('已应用加速折旧：各年折旧额翻倍。可手动调整。');
-        } else if (policyTitle.includes('增值税留抵退税')) {
-            alert('留抵退税政策不直接改变IRR模型中的参数，但会改善现金流。您可在“营收”或“付现成本”中模拟退税影响。');
-        } else {
-            alert(`政策“${policyTitle}”暂未绑定自动参数，请手动调整。`);
-        }
-        if (confirm('是否立即重新计算IRR？')) calcAll();
-    }
-
-    // ========== 知识库管理 ==========
-    const STORAGE_KEY_PREFIX = "tax_kb_";
-    function getStorageKey(industry) { return STORAGE_KEY_PREFIX + industry; }
-    function getDefaultPolicies(industry) {
-        if (industry === 'software') return [
-            { title: "软件企业增值税即征即退", description: "软件产品增值税税负超3%即征即退", linkText: "财税〔2011〕100号", linkUrl: "http://www.chinatax.gov.cn/..." },
-            { title: "软件企业所得税“两免三减半”", description: "获利年度起两年免征、三年减半", linkText: "财税〔2019〕68号", linkUrl: "http://www.chinatax.gov.cn/..." },
-            { title: "高新技术企业15%税率", description: "认定企业减按15%征收所得税", linkText: "国科发火〔2016〕32号", linkUrl: "http://www.chinatax.gov.cn/..." },
-            { title: "研发费用加计扣除100%", description: "研发费用在税前加计100%扣除", linkText: "财政部公告2023年第7号", linkUrl: "http://www.chinatax.gov.cn/..." }
-        ];
-        else if (industry === 'manufacturing') return [
-            { title: "制造业增值税留抵退税", description: "按月全额退还增量留抵税额", linkText: "财政部 税务总局公告2022年第14号", linkUrl: "http://www.chinatax.gov.cn/..." },
-            { title: "固定资产加速折旧", description: "新购固定资产可缩短折旧年限", linkText: "财税〔2019〕66号", linkUrl: "http://www.chinatax.gov.cn/..." },
-            { title: "研发费用加计扣除100%", description: "制造业加计扣除比例100%", linkText: "财政部公告2021年第13号", linkUrl: "http://www.chinatax.gov.cn/..." },
-            { title: "高新技术企业优惠", description: "制造业高新企业15%税率", linkText: "国科发火〔2016〕32号", linkUrl: "http://www.chinatax.gov.cn/..." }
-        ];
-        else return [
-            { title: "新能源增值税即征即退50%", description: "光伏、风电即征即退50%", linkText: "财税〔2015〕74号", linkUrl: "http://www.chinatax.gov.cn/..." },
-            { title: "企业所得税“三免三减半”", description: "项目取得第一笔收入起前三年免征，后三年减半", linkText: "企业所得税法实施条例", linkUrl: "http://www.chinatax.gov.cn/..." },
-            { title: "环保专用设备抵免", description: "投资额10%抵免应纳税额", linkText: "财税〔2008〕48号", linkUrl: "http://www.chinatax.gov.cn/..." }
-        ];
-    }
-    function loadIndustryData(industry) {
-        const key = getStorageKey(industry);
-        const stored = localStorage.getItem(key);
-        if (stored) try { const data = JSON.parse(stored); if (data.policies) return { policies: data.policies }; } catch(e) {}
-        const defaultData = { policies: getDefaultPolicies(industry) };
-        localStorage.setItem(key, JSON.stringify(defaultData));
-        return defaultData;
-    }
-    function saveIndustryData(industry, policies) { localStorage.setItem(getStorageKey(industry), JSON.stringify({ policies })); }
+    const industryPoliciesMap = {
+        software: [
+            { title: "软件企业增值税即征即退", desc: "税负超3%即征即退", link: "#" },
+            { title: "软件企业所得税两免三减半", desc: "获利年度起两年免征、三年减半", link: "#" }
+        ],
+        manufacturing: [
+            { title: "制造业留抵退税", desc: "按月全额退还增量留抵税额", link: "#" },
+            { title: "固定资产加速折旧", desc: "可缩短折旧年限", link: "#" }
+        ],
+        newenergy: [
+            { title: "新能源增值税即征即退50%", desc: "光伏、风电即征即退50%", link: "#" },
+            { title: "企业所得税三免三减半", desc: "项目取得第一笔收入起前三年免征，后三年减半", link: "#" }
+        ]
+    };
     let currentIndustry = 'software';
-    function renderKnowledgeBase() {
-        const panel = document.getElementById('knowledgePanel');
-        if (!panel) return;
-        const policies = loadIndustryData(currentIndustry).policies;
-        panel.innerHTML = `<div><div style="font-weight:600;">📜 行业税收优惠政策</div><div id="policyListContainer"></div><button class="btn add-btn" onclick="addNewPolicy()">+ 新增政策条文</button></div>`;
-        const container = document.getElementById('policyListContainer');
+    function renderGeneralPolicies() {
+        const container = document.getElementById('generalPolicies');
         container.innerHTML = '';
-        policies.forEach((p, idx) => {
-            const div = document.createElement('div');
-            div.className = 'policy-card';
-            div.innerHTML = `
-                <div class="policy-title">📌 ${escapeHtml(p.title)}</div>
-                <div class="policy-desc">${escapeHtml(p.description)}</div>
-                <div class="policy-link">🔗 <a href="${escapeHtml(p.linkUrl)}" target="_blank">${escapeHtml(p.linkText)}</a></div>
-                <div class="policy-actions">
-                    <button class="small-btn" onclick="openEditPolicy(${idx})">✏️ 编辑</button>
-                    <button class="small-btn" onclick="deletePolicy(${idx})">🗑️ 删除</button>
-                    <button class="small-btn" onclick="applyPolicyToIRR('${escapeHtml(p.title).replace(/'/g, "\\'")}')">📊 应用到测算</button>
-                </div>
-            `;
+        generalPolicies.forEach(p => {
+            const div = document.createElement('div'); div.className = 'policy-card';
+            div.innerHTML = `<div style="font-weight:700;">📌 ${p.title}</div><div style="font-size:0.8rem;">${p.desc}</div><a href="${p.link}" target="_blank">详情</a>`;
             container.appendChild(div);
         });
     }
-    let currentEditType = null, currentEditIndex = null, editData = null;
-    function openEditPolicy(idx) { currentEditType='policy'; currentEditIndex=idx; const data=loadIndustryData(currentIndustry); editData={...data.policies[idx]}; document.getElementById('modalTitle').innerText='编辑政策'; document.getElementById('modalFields').innerHTML=`<input id="editTitle" value="${escapeHtml(editData.title)}"><textarea id="editDesc">${escapeHtml(editData.description)}</textarea><input id="editLinkText" value="${escapeHtml(editData.linkText)}"><input id="editLinkUrl" value="${escapeHtml(editData.linkUrl)}">`; document.getElementById('editModal').style.display='flex'; }
-    function closeModal() { document.getElementById('editModal').style.display='none'; currentEditType=null; }
-    function saveModal() {
-        if (currentEditType === 'policy') {
-            const newTitle = document.getElementById('editTitle').value.trim();
-            const newDesc = document.getElementById('editDesc').value.trim();
-            const newLinkText = document.getElementById('editLinkText').value.trim();
-            const newLinkUrl = document.getElementById('editLinkUrl').value.trim();
-            if (!newTitle || !newDesc) return alert('请填写标题和描述');
-            const data = loadIndustryData(currentIndustry);
-            data.policies[currentEditIndex] = { title:newTitle, description:newDesc, linkText:newLinkText, linkUrl:newLinkUrl };
-            saveIndustryData(currentIndustry, data.policies);
-            renderKnowledgeBase();
-        }
-        closeModal();
-    }
-    function deletePolicy(idx) { if(confirm('删除政策？')){ const data=loadIndustryData(currentIndustry); data.policies.splice(idx,1); saveIndustryData(currentIndustry, data.policies); renderKnowledgeBase(); } }
-    function addNewPolicy() { const data=loadIndustryData(currentIndustry); data.policies.push({ title:"新政策标题", description:"请编辑描述", linkText:"官方链接", linkUrl:"https://www.chinatax.gov.cn/" }); saveIndustryData(currentIndustry, data.policies); renderKnowledgeBase(); setTimeout(()=>openEditPolicy(data.policies.length-1),10); }
-    function escapeHtml(str) { return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-    function switchIndustry(industry) { currentIndustry=industry; renderKnowledgeBase(); document.querySelectorAll('.industry-tab').forEach(tab=>{ if(tab.dataset.industry===industry) tab.classList.add('active'); else tab.classList.remove('active'); }); }
-    function initIndustryTabs() { document.querySelectorAll('.industry-tab').forEach(tab=>{ tab.addEventListener('click',()=>switchIndustry(tab.dataset.industry)); }); }
-
-    // 获客与微信复制
-    function initLeadCapture() {
-        const scrollBtn = document.getElementById('scrollToLeadBtn');
-        if (scrollBtn) scrollBtn.addEventListener('click', () => document.getElementById('leadCaptureCard').scrollIntoView({ behavior: 'smooth', block: 'center' }));
-        const resetBtn = document.getElementById('resetLeadBtn');
-        if (resetBtn) resetBtn.addEventListener('click', () => { ['leadName','leadCompany','leadPhone','leadEmail','leadDemand'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); document.getElementById('leadResultMsg').style.display='none'; });
-        const submitBtn = document.getElementById('submitLeadBtn');
-        if (submitBtn) submitBtn.addEventListener('click', () => {
-            const name = document.getElementById('leadName').value.trim();
-            const company = document.getElementById('leadCompany').value.trim();
-            const phone = document.getElementById('leadPhone').value.trim();
-            if (!name || !company || !phone) { alert('请填写姓名、公司名称和手机号码'); return; }
-            if (!/^1[3-9]\d{9}$/.test(phone) && !/^\d{7,15}$/.test(phone)) { alert('请填写正确的手机号码'); return; }
-            const leadData = { name, company, phone, email:document.getElementById('leadEmail').value.trim(), demand:document.getElementById('leadDemand').value.trim(), timestamp:new Date().toISOString() };
-            let leads = JSON.parse(localStorage.getItem('tax_leads_crm') || '[]');
-            leads.push(leadData);
-            localStorage.setItem('tax_leads_crm', JSON.stringify(leads));
-            const msg = document.getElementById('leadResultMsg');
-            msg.style.display = 'block';
-            msg.innerHTML = `✅ 感谢 ${name}！税务专家将在24小时内致电 ${phone}，提供专属IRR优化方案。`;
-            setTimeout(() => msg.style.display = 'none', 7000);
+    function renderIndustryPolicies() {
+        const container = document.getElementById('industryPolicies');
+        container.innerHTML = '';
+        industryPoliciesMap[currentIndustry].forEach(p => {
+            const div = document.createElement('div'); div.className = 'policy-card';
+            div.innerHTML = `<div style="font-weight:700;">📌 ${p.title}</div><div style="font-size:0.8rem;">${p.desc}</div><a href="${p.link}" target="_blank">详情</a><div><button class="small-btn" onclick="alert('应用到测算功能暂未接入后端，可通过手动修改参数')">应用到测算</button></div>`;
+            container.appendChild(div);
         });
-        const copyBtn = document.getElementById('copyWechatBtn');
-        if (copyBtn) copyBtn.addEventListener('click', () => { navigator.clipboard.writeText('N1308635859').then(()=>{ const t=copyBtn.innerText; copyBtn.innerText='✅ 已复制'; setTimeout(()=>copyBtn.innerText=t,1500); }).catch(()=>alert('无法复制')); });
     }
+    document.querySelectorAll('.industry-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.industry-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentIndustry = tab.dataset.industry;
+            renderIndustryPolicies();
+        });
+    });
 
-    function bindEvents() {
-        ['preTaxSalary','socialSecurity','specialDeduction','otherDeduction'].forEach(id => document.getElementById(id).addEventListener('input', updatePersonalTax));
-        ['businessIncome','businessCost','ownerDeduction','halfReduction'].forEach(id => document.getElementById(id).addEventListener('input', updateBusinessTax));
-        if (document.getElementById('halfReduction')) document.getElementById('halfReduction').addEventListener('change', updateBusinessTax);
-        updatePersonalTax();
-        updateBusinessTax();
+    // ========== IRR 前端动态生成年份输入框 ==========
+    let yearlyData = [];  // 存储当前年份输入框的值
+    function generateYearRows() {
+        const years = parseInt(document.getElementById('yearsCount').value) || 1;
+        const container = document.getElementById('yearsContainer');
+        container.innerHTML = '';
+        yearlyData = [];
+        for (let i = 0; i < years; i++) {
+            const yearDiv = document.createElement('div');
+            yearDiv.className = 'year-card';
+            yearDiv.innerHTML = `
+                <div class="year-label">第 ${i+1} 年</div>
+                <div class="input-group-sm"><span>营收</span><input type="number" step="0.01" class="rev"></div>
+                <div class="input-group-sm"><span>付现成本</span><input type="number" step="0.01" class="cost"></div>
+                <div class="input-group-sm"><span>利息</span><input type="number" step="0.01" class="int"></div>
+                <div class="input-group-sm"><span>折旧</span><input type="number" step="0.01" class="dep"></div>
+                <div class="input-group-sm"><span>研发费用</span><input type="number" step="0.01" class="rd"></div>
+                <div class="input-group-sm"><span>税率(%)</span><input type="number" step="0.1" class="taxrate" value="25"></div>
+            `;
+            container.appendChild(yearDiv);
+            // 存储输入框引用
+            yearlyData.push({
+                rev: yearDiv.querySelector('.rev'),
+                cost: yearDiv.querySelector('.cost'),
+                int: yearDiv.querySelector('.int'),
+                dep: yearDiv.querySelector('.dep'),
+                rd: yearDiv.querySelector('.rd'),
+                taxrate: yearDiv.querySelector('.taxrate')
+            });
+        }
     }
+    document.getElementById('generateYearsBtn').addEventListener('click', generateYearRows);
+    generateYearRows();  // 初始生成
 
-    window.openEditPolicy = openEditPolicy;
-    window.deletePolicy = deletePolicy;
-    window.addNewPolicy = addNewPolicy;
-    window.closeModal = closeModal;
-    window.saveModal = saveModal;
-    window.createRows = createRows;
-    window.calcAll = calcAll;
-    window.applyPolicyToIRR = applyPolicyToIRR;
+    // ========== 调用后端 IRR 计算 API ==========
+    async function calculateIRR() {
+        const inv = parseFloat(document.getElementById('initialInv').value);
+        const years = yearlyData.length;
+        const cashflowData = [];
+        for (let i = 0; i < years; i++) {
+            cashflowData.push({
+                revenue: parseFloat(yearlyData[i].rev.value) || 0,
+                cost: parseFloat(yearlyData[i].cost.value) || 0,
+                interest: parseFloat(yearlyData[i].int.value) || 0,
+                depreciation: parseFloat(yearlyData[i].dep.value) || 0,
+                rd: parseFloat(yearlyData[i].rd.value) || 0,
+                taxRate: parseFloat(yearlyData[i].taxrate.value) || 0
+            });
+        }
+        try {
+            const response = await fetch(`${API_BASE}/calculate-irr`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initialInvestment: inv, yearlyData: cashflowData })
+            });
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('irrResult').innerHTML = `
+                    <div style="display:flex; justify-content:center; gap:20px;">
+                        <div><span>税后 IRR</span><div class="result-value">${(result.irrAfter * 100).toFixed(4)}%</div></div>
+                        <div><span>税前 IRR</span><div class="result-value">${(result.irrBefore * 100).toFixed(4)}%</div></div>
+                    </div>
+                    <div style="font-size:0.7rem;">税后已考虑研发加计扣除100%</div>
+                `;
+            } else {
+                alert('计算失败：' + result.message);
+            }
+        } catch (err) {
+            alert('后端服务不可用，请确保后端已启动');
+        }
+    }
+    document.getElementById('calcIrrBtn').addEventListener('click', calculateIRR);
 
-    window.onload = () => {
-        createRows();
-        initIndustryTabs();
-        switchIndustry('software');
-        initLeadCapture();
-        bindEvents();
-    };
+    // ========== 获客资料提交到后端 ==========
+    async function submitLead() {
+        const name = document.getElementById('leadName').value.trim();
+        const company = document.getElementById('leadCompany').value.trim();
+        const phone = document.getElementById('leadPhone').value.trim();
+        if (!name || !company || !phone) {
+            alert('请填写完整信息');
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE}/submit-lead`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, company, phone })
+            });
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('leadMsg').innerText = '✅ 提交成功，专家将尽快联系您！';
+                document.getElementById('leadName').value = '';
+                document.getElementById('leadCompany').value = '';
+                document.getElementById('leadPhone').value = '';
+                setTimeout(() => document.getElementById('leadMsg').innerText = '', 3000);
+            } else {
+                alert('提交失败：' + result.message);
+            }
+        } catch (err) {
+            alert('后端服务不可用');
+        }
+    }
+    document.getElementById('submitLeadBtn').addEventListener('click', submitLead);
+    document.getElementById('resetLeadBtn').addEventListener('click', () => {
+        document.getElementById('leadName').value = '';
+        document.getElementById('leadCompany').value = '';
+        document.getElementById('leadPhone').value = '';
+    });
+    document.getElementById('copyWechatBtn').addEventListener('click', () => {
+        navigator.clipboard.writeText('N1308635859').then(() => alert('微信号已复制'));
+    });
+
+    // ========== AI 聊天（可前端直接调用大模型，也可后端代理，这里演示前端直接调用，需用户配置密钥） ==========
+    let apiKey = localStorage.getItem('openai_api_key') || '';
+    let apiBase = localStorage.getItem('openai_api_base') || 'https://api.openai.com/v1';
+    let apiModel = localStorage.getItem('openai_model') || 'gpt-3.5-turbo';
+    function updateApiStatus() {
+        const statusSpan = document.getElementById('apiKeyStatus');
+        if (apiKey) statusSpan.innerText = '✅ 已配置API密钥，将使用真实模型';
+        else statusSpan.innerText = '⚙️ 未配置API密钥，使用演示模式';
+    }
+    document.getElementById('configApiBtn').addEventListener('click', () => {
+        const newKey = prompt('请输入 OpenAI/DeepSeek API Key', apiKey);
+        if (newKey !== null) {
+            apiKey = newKey;
+            localStorage.setItem('openai_api_key', apiKey);
+            updateApiStatus();
+        }
+    });
+    async function simulateReply(question) {
+        const q = question.toLowerCase();
+        if (q.includes('增值税')) return '增值税一般税率13%，小规模10万以下免税。';
+        if (q.includes('所得税')) return '企业所得税标准25%，高新15%。';
+        if (q.includes('研发')) return '研发费用可加计100%扣除。';
+        return '这是演示回复。如需精准回答，请配置有效API密钥。';
+    }
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const question = input.value.trim();
+        if (!question) return;
+        const chatDiv = document.getElementById('chatMessages');
+        const userMsgDiv = document.createElement('div');
+        userMsgDiv.className = 'message user';
+        userMsgDiv.innerText = question;
+        chatDiv.appendChild(userMsgDiv);
+        input.value = '';
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+        let reply = '';
+        if (apiKey) {
+            try {
+                const response = await fetch(`${apiBase}/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify({ model: apiModel, messages: [{ role: 'user', content: question }], temperature: 0.7 })
+                });
+                const data = await response.json();
+                reply = data.choices[0].message.content;
+            } catch (err) {
+                reply = '调用AI失败，请检查API配置。';
+            }
+        } else {
+            reply = await simulateReply(question);
+        }
+        const assistantMsgDiv = document.createElement('div');
+        assistantMsgDiv.className = 'message assistant';
+        assistantMsgDiv.innerText = reply;
+        chatDiv.appendChild(assistantMsgDiv);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+    }
+    document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
+    document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    updateApiStatus();
+    renderGeneralPolicies();
+    renderIndustryPolicies();
 </script>
 </body>
 </html>
