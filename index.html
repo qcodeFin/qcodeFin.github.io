@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>IRR测算 · 税法知识库 · 税务AI助手</title>
+    <title>智能工具台 · 税务助手</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -20,30 +20,37 @@
             flex-wrap: wrap;
         }
         .left-col {
+            flex: 2;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .right-col {
             flex: 1.2;
             min-width: 320px;
             display: flex;
             flex-direction: column;
             gap: 24px;
         }
-        .right-content {
-            flex: 2;
-            min-width: 300px;
-        }
+
+        /* 全局卡片样式 */
         .card {
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(2px);
+            background: rgba(170, 210, 170, 0.2);
+            backdrop-filter: blur(16px);
             border-radius: 32px;
             padding: 24px 22px;
             margin-bottom: 24px;
-            border: 1px solid rgba(255,255,255,0.6);
+            border: 1px solid rgba(180, 210, 160, 0.5);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
         }
         .card-header {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 20px;
-            border-bottom: 2px solid #eef2fa;
+            border-bottom: 2px solid rgba(180, 210, 160, 0.3);
             padding-bottom: 12px;
         }
         .card-header h3 {
@@ -51,8 +58,46 @@
             font-weight: 600;
             background: linear-gradient(135deg, #1f2f5c, #2c4b8c);
             background-clip: text;
+            -webkit-background-clip: text;
             color: transparent;
         }
+
+        /* 测量图标淡绿色 */
+        .measure-icon {
+            color: #66bb6a;
+            font-size: 1.5rem;
+            display: inline-block;
+            line-height: 1;
+        }
+
+        /* 工具卡片网格 */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tool-card {
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
+            border-radius: 20px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tool-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.04); }
+        .tool-card.active { border-color: #2c5f8a; background: rgba(44,95,138,0.1); }
+        .tool-card .icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+        .tool-card .name { font-weight: 600; font-size: 0.8rem; color: #1e2f47; }
+        .tool-card .desc { font-size: 0.6rem; color: #4a6a8a; margin-top: 2px; }
+        .tool-card .badge { font-size: 0.5rem; background: rgba(44,95,138,0.2); padding: 1px 6px; border-radius: 10px; color: #2c5f8a; display: inline-block; margin-top: 4px; }
+
+        .tool-content { display: none; }
+        .tool-content.active { display: block; }
+
+        /* 输入控件 */
         .param-row {
             display: flex;
             flex-wrap: wrap;
@@ -64,10 +109,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #f8fafd;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(4px);
             padding: 6px 16px;
             border-radius: 60px;
-            border: 1px solid #e2eaf5;
+            border: 1px solid rgba(180, 210, 160, 0.5);
         }
         .param-group label { font-weight: 500; color: #1e2f47; }
         .param-group input {
@@ -76,59 +122,67 @@
             padding: 8px 0;
             width: 110px;
             outline: none;
+            color: #1a2a3a;
         }
-        .btn {
-            background: #2c5f8a;
-            border: none;
+        .btn, .btn-primary, .btn-calc {
+            background: rgba(170, 210, 170, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(180, 210, 160, 0.4);
             padding: 8px 20px;
             border-radius: 40px;
-            color: white;
+            color: #000000;
+            font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
+            font-size: 0.85rem;
         }
-        .btn-primary { background: linear-gradient(105deg, #2b5f8a, #1f4980); }
-        .btn-primary:hover { transform: translateY(-2px); background: linear-gradient(105deg, #236d9c, #1b3f6e); }
-        .btn-calc { background: linear-gradient(105deg, #2b7a4b, #1d5e3a); padding: 10px 24px; }
+        .btn:hover, .btn-primary:hover, .btn-calc:hover { background: rgba(170, 210, 170, 0.5); }
+        .btn-calc { padding: 10px 24px; font-size: 1rem; }
+
         .year-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
         .year-card {
-            background: #ffffffdd;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
             border-radius: 24px;
             padding: 10px 14px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 10px;
+            border: 1px solid rgba(180, 210, 160, 0.3);
         }
         .year-label {
             font-weight: 700;
-            background: #eef3fc;
+            background: rgba(238,243,252,0.7);
             padding: 4px 12px;
             border-radius: 40px;
             font-size: 0.8rem;
             min-width: 65px;
             text-align: center;
+            color: #1e3a4a;
         }
         .input-group-sm {
             display: flex;
             align-items: center;
             gap: 5px;
-            background: #fafcff;
-            border: 1px solid #e2edf9;
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(180, 210, 160, 0.3);
             border-radius: 32px;
             padding: 4px 10px;
         }
-        .input-group-sm span { font-size: 0.7rem; color: #5b6f8c; }
+        .input-group-sm span { font-size: 0.7rem; color: #4a6a8a; }
         .input-group-sm input {
             width: 75px;
             border: none;
             background: transparent;
             padding: 5px 0;
             outline: none;
+            color: #1a2a3a;
         }
         .result-value {
             font-size: 1.5rem;
             font-weight: 700;
-            background: #1e2f41;
+            background: rgba(30,47,65,0.8);
             display: inline-block;
             padding: 8px 20px;
             border-radius: 60px;
@@ -136,35 +190,44 @@
             margin-top: 10px;
         }
         .policy-card {
-            background: #f8fafd;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
             border-radius: 20px;
             padding: 14px;
             margin-bottom: 14px;
             border-left: 5px solid #2c7da0;
         }
         .small-btn {
-            background: #e2eaf5;
+            background: rgba(226,234,245,0.7);
             border: none;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.7rem;
             cursor: pointer;
             margin-top: 6px;
+            color: #1f4980;
         }
+
+        /* AI 聊天窗口 */
         .glass-chat {
             background: rgba(170,210,170,0.2);
             backdrop-filter: blur(16px);
             border-radius: 32px;
             border: 1px solid rgba(180,210,160,0.4);
             padding: 20px;
+            height: 100%;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
         }
         .chat-messages {
-            height: 320px;
+            flex: 1;
             overflow-y: auto;
             margin-bottom: 16px;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            max-height: 300px;
         }
         .message {
             padding: 8px 14px;
@@ -189,11 +252,16 @@
         }
         .chat-input-area input {
             flex: 1;
+            border: none;
             border-radius: 40px;
-            border: 1px solid #c0d8c0;
             padding: 10px 16px;
-            background: white;
+            background: rgba(255,255,255,0.7);
+            outline: none;
+            color: #1a2a3a;
         }
+        .chat-input-area input:focus { background: rgba(255,255,255,0.9); }
+
+        /* 获客表单 */
         .lead-field-row {
             display: flex;
             gap: 12px;
@@ -204,19 +272,180 @@
             flex: 1;
             padding: 10px 14px;
             border-radius: 40px;
-            border: 1px solid #cbddea;
-            background: white;
+            border: 1px solid rgba(180,210,160,0.5);
+            background: rgba(255,255,255,0.7);
+            color: #1a2a3a;
+            outline: none;
         }
+
+        /* 个税结果 */
+        .tax-result-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .tax-result-item {
+            flex: 1;
+            min-width: 120px;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
+            border-radius: 20px;
+            padding: 12px 16px;
+            text-align: center;
+        }
+        .tax-result-item .label { font-size: 0.75rem; color: #4a6a8a; }
+        .tax-result-item .value { font-size: 1.2rem; font-weight: 700; color: #1f4980; }
+
+        /* 行业标签 */
+        .industry-tabs {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .industry-tab {
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(44,98,136,0.4);
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            color: #2c6288;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .industry-tab.active {
+            background: rgba(44,95,138,0.2);
+            border-color: #2c5f8a;
+        }
+
         @media (max-width: 900px) {
             .container { flex-direction: column; }
+            .tool-grid { grid-template-columns: repeat(2, 1fr); }
+            .right-col { order: -1; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- 左侧：AI聊天 + 获客表单 -->
+    <!-- 左侧列：工具台 + 行业税法 -->
     <div class="left-col">
-        <!-- AI 聊天窗口（保留前端直接调用大模型 API，也可改成后端代理，保持简单） -->
+        <!-- 智能工具台卡片 -->
+        <div class="card">
+            <div class="card-header">
+                <h3 style="color: #000000;">智能工具台</h3>
+            </div>
+            <div class="tool-grid">
+                <!-- 金融测算卡片，图标改为三角尺并应用淡绿色 -->
+                <div class="tool-card active" data-tool="irr">
+                    <span class="icon measure-icon">📐</span>
+                    <div class="name">金融测算</div>
+                    <div class="desc">投资回报分析</div>
+                </div>
+                <div class="tool-card" data-tool="tax">
+                    <span class="icon">🧾</span>
+                    <div class="name">个税试算</div>
+                    <div class="desc">工资薪金个税</div>
+                </div>
+                <div class="tool-card" data-tool="cross">
+                    <span class="icon">📈</span>
+                    <div class="name">跨国估算</div>
+                    <div class="desc">跨境税务概算</div>
+                    <span class="badge">即将上线</span>
+                </div>
+                <div class="tool-card" data-tool="check">
+                    <span class="icon">📋</span>
+                    <div class="name">条件检测</div>
+                    <div class="desc">税务合规自检</div>
+                    <span class="badge">即将上线</span>
+                </div>
+            </div>
+            <!-- 工具内容区 -->
+            <div id="toolContentContainer">
+                <!-- IRR 内容 -->
+                <div id="tool-irr" class="tool-content active">
+                    <div style="margin-bottom:16px;">
+                        <strong>项目IRR测算（政策驱动）</strong>
+                    </div>
+                    <div class="param-row">
+                        <div class="param-group"><label>初始投资</label><input type="number" id="initialInv" value="1000" step="0.01"></div>
+                        <div class="param-group"><label>项目年限</label><input type="number" id="yearsCount" value="3" min="1" step="1"></div>
+                        <button id="generateYearsBtn" class="btn">生成年份表</button>
+                    </div>
+                    <div id="yearsContainer"></div>
+                    <button id="calcIrrBtn" class="btn btn-calc" style="margin-top:16px;">计算 IRR</button>
+                    <div id="irrResult" style="margin-top:20px; text-align:center;"></div>
+                </div>
+                <!-- 个税内容 -->
+                <div id="tool-tax" class="tool-content">
+                    <div style="margin-bottom:16px;"><strong>🧾 个人所得税计算器（工资薪金）</strong></div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                        <div class="param-group" style="grid-column: span 2; justify-content:space-between;">
+                            <label>月税前工资 (元)</label>
+                            <input type="number" id="preTaxSalary" value="15000" step="500">
+                        </div>
+                        <div class="param-group">
+                            <label>社保个人部分</label>
+                            <input type="number" id="socialSecurity" value="1500" step="100">
+                        </div>
+                        <div class="param-group">
+                            <label>公积金个人部分</label>
+                            <input type="number" id="housingFund" value="1200" step="100">
+                        </div>
+                        <div class="param-group" style="grid-column: span 2;">
+                            <label>专项附加扣除 (元/月)</label>
+                            <input type="number" id="specialDeduction" value="2000" step="500">
+                        </div>
+                        <div class="param-group" style="grid-column: span 2;">
+                            <label>其他扣除 (元/月)</label>
+                            <input type="number" id="otherDeduction" value="0" step="100">
+                        </div>
+                    </div>
+                    <button id="calcTaxBtn" class="btn btn-calc" style="margin-top:12px;">计算个税</button>
+                    <div class="tax-result-grid" id="taxResult">
+                        <div class="tax-result-item"><div class="label">📉 应纳税所得额</div><div class="value" id="taxableIncome">0</div></div>
+                        <div class="tax-result-item"><div class="label">💸 月应缴个税</div><div class="value" id="monthlyTax">0</div></div>
+                        <div class="tax-result-item"><div class="label">🏧 税后月薪</div><div class="value" id="netSalary">0</div></div>
+                        <div class="tax-result-item"><div class="label">📆 全年个税</div><div class="value" id="yearlyTax">0</div></div>
+                    </div>
+                </div>
+                <!-- 跨国估算占位 -->
+                <div id="tool-cross" class="tool-content">
+                    <div style="text-align:center; padding:40px 0; color:#5b6f8c;">
+                        <span style="font-size:3rem; display:block;">🌐</span>
+                        <p style="font-size:1.2rem; font-weight:600; margin-top:12px;">跨国税务估算</p>
+                        <p style="font-size:0.9rem;">功能开发中，敬请期待……</p>
+                    </div>
+                </div>
+                <!-- 条件检测占位 -->
+                <div id="tool-check" class="tool-content">
+                    <div style="text-align:center; padding:40px 0; color:#5b6f8c;">
+                        <span style="font-size:3rem; display:block;">📋</span>
+                        <p style="font-size:1.2rem; font-weight:600; margin-top:12px;">税务条件检测</p>
+                        <p style="font-size:0.9rem;">功能开发中，敬请期待……</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 行业税法知识库 -->
+        <div class="card">
+            <div class="card-header">
+                <span>🏭</span>
+                <h3 style="color: #000000;">行业税法知识库</h3>
+            </div>
+            <div class="industry-tabs" id="industryTabs">
+                <button class="industry-tab active" data-industry="software">软件</button>
+                <button class="industry-tab" data-industry="manufacturing">制造</button>
+                <button class="industry-tab" data-industry="newenergy">新能源</button>
+            </div>
+            <div id="industryPolicies"></div>
+        </div>
+    </div>
+
+    <!-- 右侧列：AI + 获客 + 通用税法 -->
+    <div class="right-col">
+        <!-- AI 聊天窗口 -->
         <div class="glass-chat">
             <div style="font-weight:700; margin-bottom:12px;">🌿 税务AI助手</div>
             <div class="chat-messages" id="chatMessages">
@@ -226,67 +455,169 @@
                 <input type="text" id="chatInput" placeholder="输入问题...">
                 <button id="sendChatBtn" class="btn">发送</button>
             </div>
-            <div class="api-settings" style="text-align:center; margin-top:8px; font-size:0.7rem;">
-                <span id="apiKeyStatus">⚙️ 未配置API密钥，使用演示模式</span>
-                <button id="configApiBtn" style="background:none; border:none; color:#2c5f8a; text-decoration:underline; cursor:pointer;">配置</button>
+            <div style="text-align:center; margin-top:8px; font-size:0.7rem; color:#4a6a8a;">
+                ⚡ 由后端AI代理服务（密钥保密）
             </div>
         </div>
+
         <!-- 获客卡片 -->
         <div class="card">
-            <div class="card-header"><span>🎯</span><h3>免费税务筹划诊断</h3></div>
+            <div class="card-header">
+                <span style="color: #7fb07f; font-size: 1.2rem;">⦿</span>
+                <h3 style="color: #000000; font-size: 0.95rem;">专业税务筹划</h3>
+            </div>
             <div class="lead-field-row"><input type="text" id="leadName" placeholder="姓名 *"></div>
             <div class="lead-field-row"><input type="text" id="leadCompany" placeholder="公司 *"></div>
             <div class="lead-field-row"><input type="tel" id="leadPhone" placeholder="手机 *"></div>
             <div style="display:flex; gap:12px; justify-content:flex-end;">
-                <button id="submitLeadBtn" class="btn btn-primary">提交</button>
+                <button id="submitLeadBtn" class="btn">提交</button>
                 <button id="resetLeadBtn" class="btn">重置</button>
             </div>
             <div id="leadMsg" style="margin-top:10px; font-size:0.8rem;"></div>
-            <div class="wechat-row" style="margin-top:16px; background:#fef7e0; border-radius:28px; padding:10px 16px; display:flex; justify-content:space-between;">
-                <span>🤝 专家微信 N1308635859</span>
-                <button id="copyWechatBtn" style="background:#e9b35f; border:none; border-radius:30px; padding:4px 12px;">复制</button>
+            <!-- 提问税务问题快捷入口 -->
+            <div style="background: rgba(170,210,170,0.2); backdrop-filter: blur(4px); border-radius:28px; padding:10px 16px; margin-top:16px; display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; border: 1px solid rgba(180,210,160,0.3);">
+                <span style="font-size:0.9rem; color: #2c5a2c;">💬 提问税务问题</span>
+                <button onclick="document.getElementById('chatInput').focus();" style="background: rgba(170,210,170,0.3); backdrop-filter: blur(4px); border: 1px solid rgba(180,210,160,0.4); border-radius:30px; padding:4px 16px; cursor:pointer; font-weight:600; color:#000000;">去提问</button>
             </div>
         </div>
-    </div>
 
-    <!-- 右侧内容 -->
-    <div class="right-content">
-        <!-- IRR 测算 -->
+        <!-- 通用税法知识库 -->
         <div class="card">
-            <div class="card-header"><span>📊</span><h3>IRR测算（政策驱动）</h3></div>
-            <div class="param-row">
-                <div class="param-group"><label>初始投资</label><input type="number" id="initialInv" value="1000" step="0.01"></div>
-                <div class="param-group"><label>项目年限</label><input type="number" id="yearsCount" value="3" min="1" step="1"></div>
-                <button id="generateYearsBtn" class="btn btn-primary">生成年份表</button>
+            <div class="card-header">
+                <span>📜</span>
+                <h3 style="color: #000000;">通用税法知识库</h3>
             </div>
-            <div id="yearsContainer"></div>
-            <button id="calcIrrBtn" class="btn btn-calc" style="margin-top:16px;">计算 IRR</button>
-            <div id="irrResult" style="margin-top:20px; text-align:center;"></div>
-        </div>
-
-        <!-- 通用税法知识库（静态，不涉及后端） -->
-        <div class="card">
-            <div class="card-header"><span>📜</span><h3>通用税法知识库</h3></div>
             <div id="generalPolicies"></div>
-        </div>
-        <!-- 行业税法知识库（静态） -->
-        <div class="card">
-            <div class="card-header"><span>🏭</span><h3>行业税法知识库</h3></div>
-            <div class="industry-tabs" id="industryTabs">
-                <button class="industry-tab active" data-industry="software">软件</button>
-                <button class="industry-tab" data-industry="manufacturing">制造</button>
-                <button class="industry-tab" data-industry="newenergy">新能源</button>
-            </div>
-            <div id="industryPolicies"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // ========== 后端 API 地址（请根据实际部署修改） ==========
-    const API_BASE = 'http://localhost:3000/api';  // 后端服务地址
+    // ========== 后端 API 地址（部署时改为服务器公网IP或域名） ==========
+    const API_BASE = 'http://localhost:3000/api';
 
-    // ========== 通用/行业政策数据（静态，不需要后端，但可独立维护） ==========
+    // ========== 工具切换 ==========
+    const toolCards = document.querySelectorAll('.tool-card');
+    const toolContents = {
+        irr: document.getElementById('tool-irr'),
+        tax: document.getElementById('tool-tax'),
+        cross: document.getElementById('tool-cross'),
+        check: document.getElementById('tool-check')
+    };
+    toolCards.forEach(card => {
+        card.addEventListener('click', () => {
+            toolCards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            const tool = card.dataset.tool;
+            Object.keys(toolContents).forEach(key => {
+                toolContents[key].classList.toggle('active', key === tool);
+            });
+        });
+    });
+
+    // ========== IRR 逻辑 ==========
+    let yearlyData = [];
+    function generateYearRows() {
+        const years = parseInt(document.getElementById('yearsCount').value) || 1;
+        const container = document.getElementById('yearsContainer');
+        container.innerHTML = '';
+        yearlyData = [];
+        for (let i = 0; i < years; i++) {
+            const yearDiv = document.createElement('div');
+            yearDiv.className = 'year-card';
+            yearDiv.innerHTML = `
+                <div class="year-label">第 ${i+1} 年</div>
+                <div class="input-group-sm"><span>营收</span><input type="number" step="0.01" class="rev"></div>
+                <div class="input-group-sm"><span>付现成本</span><input type="number" step="0.01" class="cost"></div>
+                <div class="input-group-sm"><span>利息</span><input type="number" step="0.01" class="int"></div>
+                <div class="input-group-sm"><span>折旧</span><input type="number" step="0.01" class="dep"></div>
+                <div class="input-group-sm"><span>研发费用</span><input type="number" step="0.01" class="rd"></div>
+                <div class="input-group-sm"><span>税率(%)</span><input type="number" step="0.1" class="taxrate" value="25"></div>
+            `;
+            container.appendChild(yearDiv);
+            yearlyData.push({
+                rev: yearDiv.querySelector('.rev'),
+                cost: yearDiv.querySelector('.cost'),
+                int: yearDiv.querySelector('.int'),
+                dep: yearDiv.querySelector('.dep'),
+                rd: yearDiv.querySelector('.rd'),
+                taxrate: yearDiv.querySelector('.taxrate')
+            });
+        }
+    }
+    document.getElementById('generateYearsBtn').addEventListener('click', generateYearRows);
+    generateYearRows();
+
+    async function calculateIRR() {
+        const inv = parseFloat(document.getElementById('initialInv').value);
+        const data = [];
+        for (let i = 0; i < yearlyData.length; i++) {
+            data.push({
+                revenue: parseFloat(yearlyData[i].rev.value) || 0,
+                cost: parseFloat(yearlyData[i].cost.value) || 0,
+                interest: parseFloat(yearlyData[i].int.value) || 0,
+                depreciation: parseFloat(yearlyData[i].dep.value) || 0,
+                rd: parseFloat(yearlyData[i].rd.value) || 0,
+                taxRate: parseFloat(yearlyData[i].taxrate.value) || 0
+            });
+        }
+        try {
+            const resp = await fetch(`${API_BASE}/calculate-irr`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initialInvestment: inv, yearlyData: data })
+            });
+            const result = await resp.json();
+            if (result.success) {
+                document.getElementById('irrResult').innerHTML = `
+                    <div style="display:flex; justify-content:center; gap:20px;">
+                        <div><span>税后 IRR</span><div class="result-value">${(result.irrAfter * 100).toFixed(4)}%</div></div>
+                        <div><span>税前 IRR</span><div class="result-value">${(result.irrBefore * 100).toFixed(4)}%</div></div>
+                    </div>
+                    <div style="font-size:0.7rem;">税后已考虑研发加计扣除100%</div>
+                `;
+            } else alert('计算失败：' + result.message);
+        } catch (e) { alert('后端服务不可用'); }
+    }
+    document.getElementById('calcIrrBtn').addEventListener('click', calculateIRR);
+
+    // ========== 个人所得税计算 ==========
+    const TAX_BRACKETS = [
+        { upper: 3000, rate: 0.03, deduct: 0 },
+        { upper: 12000, rate: 0.10, deduct: 210 },
+        { upper: 25000, rate: 0.20, deduct: 1410 },
+        { upper: 35000, rate: 0.25, deduct: 2660 },
+        { upper: 55000, rate: 0.30, deduct: 4410 },
+        { upper: 80000, rate: 0.35, deduct: 7160 },
+        { upper: Infinity, rate: 0.45, deduct: 15160 }
+    ];
+    function calcMonthlyTax(taxable) {
+        if (taxable <= 0) return 0;
+        for (let b of TAX_BRACKETS) {
+            if (taxable <= b.upper) return taxable * b.rate - b.deduct;
+        }
+        return 0;
+    }
+    function calcPersonalTax() {
+        const salary = parseFloat(document.getElementById('preTaxSalary').value) || 0;
+        const social = parseFloat(document.getElementById('socialSecurity').value) || 0;
+        const fund = parseFloat(document.getElementById('housingFund').value) || 0;
+        const special = parseFloat(document.getElementById('specialDeduction').value) || 0;
+        const other = parseFloat(document.getElementById('otherDeduction').value) || 0;
+        const threshold = 5000;
+        const taxable = salary - social - fund - threshold - special - other;
+        const tax = calcMonthlyTax(taxable);
+        const net = salary - social - fund - tax;
+        const yearly = tax * 12;
+        document.getElementById('taxableIncome').innerText = taxable.toFixed(2);
+        document.getElementById('monthlyTax').innerText = tax.toFixed(2);
+        document.getElementById('netSalary').innerText = net.toFixed(2);
+        document.getElementById('yearlyTax').innerText = yearly.toFixed(2);
+    }
+    document.getElementById('calcTaxBtn').addEventListener('click', calcPersonalTax);
+    window.addEventListener('load', () => { setTimeout(calcPersonalTax, 100); });
+
+    // ========== 税法知识库（静态） ==========
     const generalPolicies = [
         { title: "增值税基本税率", desc: "一般纳税人销售货物、劳务，税率13%。", link: "https://www.chinatax.gov.cn/" },
         { title: "企业所得税标准税率", desc: "居民企业25%，高新企业15%。", link: "https://www.chinatax.gov.cn/" },
@@ -333,108 +664,30 @@
             renderIndustryPolicies();
         });
     });
+    renderGeneralPolicies();
+    renderIndustryPolicies();
 
-    // ========== IRR 前端动态生成年份输入框 ==========
-    let yearlyData = [];  // 存储当前年份输入框的值
-    function generateYearRows() {
-        const years = parseInt(document.getElementById('yearsCount').value) || 1;
-        const container = document.getElementById('yearsContainer');
-        container.innerHTML = '';
-        yearlyData = [];
-        for (let i = 0; i < years; i++) {
-            const yearDiv = document.createElement('div');
-            yearDiv.className = 'year-card';
-            yearDiv.innerHTML = `
-                <div class="year-label">第 ${i+1} 年</div>
-                <div class="input-group-sm"><span>营收</span><input type="number" step="0.01" class="rev"></div>
-                <div class="input-group-sm"><span>付现成本</span><input type="number" step="0.01" class="cost"></div>
-                <div class="input-group-sm"><span>利息</span><input type="number" step="0.01" class="int"></div>
-                <div class="input-group-sm"><span>折旧</span><input type="number" step="0.01" class="dep"></div>
-                <div class="input-group-sm"><span>研发费用</span><input type="number" step="0.01" class="rd"></div>
-                <div class="input-group-sm"><span>税率(%)</span><input type="number" step="0.1" class="taxrate" value="25"></div>
-            `;
-            container.appendChild(yearDiv);
-            // 存储输入框引用
-            yearlyData.push({
-                rev: yearDiv.querySelector('.rev'),
-                cost: yearDiv.querySelector('.cost'),
-                int: yearDiv.querySelector('.int'),
-                dep: yearDiv.querySelector('.dep'),
-                rd: yearDiv.querySelector('.rd'),
-                taxrate: yearDiv.querySelector('.taxrate')
-            });
-        }
-    }
-    document.getElementById('generateYearsBtn').addEventListener('click', generateYearRows);
-    generateYearRows();  // 初始生成
-
-    // ========== 调用后端 IRR 计算 API ==========
-    async function calculateIRR() {
-        const inv = parseFloat(document.getElementById('initialInv').value);
-        const years = yearlyData.length;
-        const cashflowData = [];
-        for (let i = 0; i < years; i++) {
-            cashflowData.push({
-                revenue: parseFloat(yearlyData[i].rev.value) || 0,
-                cost: parseFloat(yearlyData[i].cost.value) || 0,
-                interest: parseFloat(yearlyData[i].int.value) || 0,
-                depreciation: parseFloat(yearlyData[i].dep.value) || 0,
-                rd: parseFloat(yearlyData[i].rd.value) || 0,
-                taxRate: parseFloat(yearlyData[i].taxrate.value) || 0
-            });
-        }
-        try {
-            const response = await fetch(`${API_BASE}/calculate-irr`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ initialInvestment: inv, yearlyData: cashflowData })
-            });
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('irrResult').innerHTML = `
-                    <div style="display:flex; justify-content:center; gap:20px;">
-                        <div><span>税后 IRR</span><div class="result-value">${(result.irrAfter * 100).toFixed(4)}%</div></div>
-                        <div><span>税前 IRR</span><div class="result-value">${(result.irrBefore * 100).toFixed(4)}%</div></div>
-                    </div>
-                    <div style="font-size:0.7rem;">税后已考虑研发加计扣除100%</div>
-                `;
-            } else {
-                alert('计算失败：' + result.message);
-            }
-        } catch (err) {
-            alert('后端服务不可用，请确保后端已启动');
-        }
-    }
-    document.getElementById('calcIrrBtn').addEventListener('click', calculateIRR);
-
-    // ========== 获客资料提交到后端 ==========
+    // ========== 获客表单（后端） ==========
     async function submitLead() {
         const name = document.getElementById('leadName').value.trim();
         const company = document.getElementById('leadCompany').value.trim();
         const phone = document.getElementById('leadPhone').value.trim();
-        if (!name || !company || !phone) {
-            alert('请填写完整信息');
-            return;
-        }
+        if (!name || !company || !phone) { alert('请填写完整信息'); return; }
         try {
-            const response = await fetch(`${API_BASE}/submit-lead`, {
+            const resp = await fetch(`${API_BASE}/submit-lead`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, company, phone })
             });
-            const result = await response.json();
+            const result = await resp.json();
             if (result.success) {
                 document.getElementById('leadMsg').innerText = '✅ 提交成功，专家将尽快联系您！';
                 document.getElementById('leadName').value = '';
                 document.getElementById('leadCompany').value = '';
                 document.getElementById('leadPhone').value = '';
                 setTimeout(() => document.getElementById('leadMsg').innerText = '', 3000);
-            } else {
-                alert('提交失败：' + result.message);
-            }
-        } catch (err) {
-            alert('后端服务不可用');
-        }
+            } else alert('提交失败：' + result.message);
+        } catch (e) { alert('后端服务不可用'); }
     }
     document.getElementById('submitLeadBtn').addEventListener('click', submitLead);
     document.getElementById('resetLeadBtn').addEventListener('click', () => {
@@ -442,34 +695,8 @@
         document.getElementById('leadCompany').value = '';
         document.getElementById('leadPhone').value = '';
     });
-    document.getElementById('copyWechatBtn').addEventListener('click', () => {
-        navigator.clipboard.writeText('N1308635859').then(() => alert('微信号已复制'));
-    });
 
-    // ========== AI 聊天（可前端直接调用大模型，也可后端代理，这里演示前端直接调用，需用户配置密钥） ==========
-    let apiKey = localStorage.getItem('openai_api_key') || '';
-    let apiBase = localStorage.getItem('openai_api_base') || 'https://api.openai.com/v1';
-    let apiModel = localStorage.getItem('openai_model') || 'gpt-3.5-turbo';
-    function updateApiStatus() {
-        const statusSpan = document.getElementById('apiKeyStatus');
-        if (apiKey) statusSpan.innerText = '✅ 已配置API密钥，将使用真实模型';
-        else statusSpan.innerText = '⚙️ 未配置API密钥，使用演示模式';
-    }
-    document.getElementById('configApiBtn').addEventListener('click', () => {
-        const newKey = prompt('请输入 OpenAI/DeepSeek API Key', apiKey);
-        if (newKey !== null) {
-            apiKey = newKey;
-            localStorage.setItem('openai_api_key', apiKey);
-            updateApiStatus();
-        }
-    });
-    async function simulateReply(question) {
-        const q = question.toLowerCase();
-        if (q.includes('增值税')) return '增值税一般税率13%，小规模10万以下免税。';
-        if (q.includes('所得税')) return '企业所得税标准25%，高新15%。';
-        if (q.includes('研发')) return '研发费用可加计100%扣除。';
-        return '这是演示回复。如需精准回答，请配置有效API密钥。';
-    }
+    // ========== AI 聊天（后端代理） ==========
     async function sendMessage() {
         const input = document.getElementById('chatInput');
         const question = input.value.trim();
@@ -481,33 +708,38 @@
         chatDiv.appendChild(userMsgDiv);
         input.value = '';
         chatDiv.scrollTop = chatDiv.scrollHeight;
-        let reply = '';
-        if (apiKey) {
-            try {
-                const response = await fetch(`${apiBase}/chat/completions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                    body: JSON.stringify({ model: apiModel, messages: [{ role: 'user', content: question }], temperature: 0.7 })
-                });
-                const data = await response.json();
-                reply = data.choices[0].message.content;
-            } catch (err) {
-                reply = '调用AI失败，请检查API配置。';
-            }
-        } else {
-            reply = await simulateReply(question);
-        }
-        const assistantMsgDiv = document.createElement('div');
-        assistantMsgDiv.className = 'message assistant';
-        assistantMsgDiv.innerText = reply;
-        chatDiv.appendChild(assistantMsgDiv);
+        const thinking = document.createElement('div');
+        thinking.className = 'message assistant';
+        thinking.innerText = '🤔 思考中...';
+        chatDiv.appendChild(thinking);
         chatDiv.scrollTop = chatDiv.scrollHeight;
+        try {
+            const resp = await fetch(`${API_BASE}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: question })
+            });
+            const data = await resp.json();
+            thinking.remove();
+            const reply = data.success ? data.reply : '抱歉，服务暂时不可用。';
+            const assistantMsg = document.createElement('div');
+            assistantMsg.className = 'message assistant';
+            assistantMsg.innerText = reply;
+            chatDiv.appendChild(assistantMsg);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        } catch (e) {
+            thinking.remove();
+            const errMsg = document.createElement('div');
+            errMsg.className = 'message assistant';
+            errMsg.innerText = '网络异常，请检查后端服务。';
+            chatDiv.appendChild(errMsg);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
     }
     document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
-    document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-    updateApiStatus();
-    renderGeneralPolicies();
-    renderIndustryPolicies();
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
 </script>
 </body>
 </html>
